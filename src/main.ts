@@ -2,12 +2,14 @@
  * Main entry point for the OPML feed validator and analyzer
  * Processes an OPML file containing RSS/Atom feeds and:
  * 1. Validates feed accessibility
- * 2. Checks update frequency
- * 3. Categorizes feeds (active/inactive/dead)
- * 4. Generates statistics and visualizations
+ * 2. Checks feed format compatibility
+ * 3. Checks update frequency
+ * 4. Categorizes feeds (active/inactive/dead/incompatible)
+ * 5. Generates statistics and visualizations
  */
 import { parseOPML } from "./parseOPML.ts";
 import { checkFeedAccessibility } from "./checkFeedAccessibility.ts";
+import { checkFeedCompatibility } from "./checkFeedCompatibility.ts";
 import { getFeedUpdateFrequency } from "./getFeedUpdateFrequency.ts";
 import { generateNewOPML } from "./generateNewOPML.ts";
 import { generateStatistics } from "./writeStatistics.ts";
@@ -22,7 +24,7 @@ async function main() {
 
   // Log processing information
   console.log(`Using input file: ${inputFilePath}`);
-  console.log(`Output files will be written to: ${outputDir}/${baseName}-[active|dead|inactive].opml`);
+  console.log(`Output files will be written to: ${outputDir}/${baseName}-[active|dead|inactive|incompatible].opml`);
 
   // Step 1: Parse the OPML file into structured data
   console.log("Parsing OPML file...");
@@ -37,18 +39,33 @@ async function main() {
       
       // First check if the feed URL is accessible
       const isAccessible = await checkFeedAccessibility(feed.url);
-      if (isAccessible) {
-        // If accessible, analyze the feed's update frequency
-        console.log(`    Feed is accessible. Fetching update frequency...`);
+      if (!isAccessible) {
+        feed.status = "dead";
+        feed.incompatibleReason = "Feed URL is not accessible";
+        console.log(`    Feed is not accessible. Marked as dead.`);
+        continue;
+      }
+
+      // If accessible, check feed format compatibility
+      console.log(`    Feed is accessible. Checking format compatibility...`);
+      const compatibilityCheck = await checkFeedCompatibility(feed.url);
+      feed.status = compatibilityCheck.status;
+      feed.incompatibleReason = compatibilityCheck.incompatibleReason;
+
+      // Only check update frequency for compatible feeds
+      if (feed.status === 'active') {
+        console.log(`    Feed format is valid. Fetching update frequency...`);
         const feedStatus = await getFeedUpdateFrequency(feed.url);
         feed.status = feedStatus.status;
         feed.lastUpdate = feedStatus.lastUpdate;
         feed.updatesInLast3Months = feedStatus.updatesInLast3Months;
-        console.log(`    Feed status: ${feed.status}, Last update: ${feed.lastUpdate}, Updates in last 3 months: ${feed.updatesInLast3Months}`);
+        // Add incompatible reason if feed became incompatible
+        if (feedStatus.status === 'incompatible') {
+          feed.incompatibleReason = feedStatus.incompatibleReason;
+        }
+        console.log(`    Feed status: ${feed.status}${feedStatus.incompatibleReason ? ': ' + feedStatus.incompatibleReason : ''}`);
       } else {
-        // Mark inaccessible feeds as dead
-        feed.status = "dead";
-        console.log(`    Feed is not accessible. Marked as dead.`);
+        console.log(`    Feed marked as ${feed.status}${feed.incompatibleReason ? ': ' + feed.incompatibleReason : ''}`);
       }
     }
   }
@@ -56,7 +73,7 @@ async function main() {
   // Step 3: Generate new OPML files for each feed status category
   console.log("Generating new OPML file...");
   await generateNewOPML(opmlData, `${outputDir}/${baseName}`);
-  console.log(`New OPML files generated at: ${outputDir}/${baseName}-[active|dead|inactive].opml`);
+  console.log(`New OPML files generated at: ${outputDir}/${baseName}-[active|dead|inactive|incompatible].opml`);
 
   // Step 4: Generate statistics and visualizations
   console.log("Generating statistics file...");

@@ -2,21 +2,7 @@
  * RSS/Atom feed parser module that checks feed health and update frequency
  */
 import { parseFeed } from "@mikaelporttila/rss";
-
-/**
- * Represents the status and update information of a feed
- * @interface FeedStatus
- * @property {string} url - The feed's URL
- * @property {'active' | 'inactive' | 'dead'} status - Current status of the feed
- * @property {Date | null} lastUpdate - Date of the most recent entry
- * @property {number} updatesInLast3Months - Count of updates in past 3 months
- */
-export interface FeedStatus {
-  url: string;
-  status: 'active' | 'inactive' | 'dead';
-  lastUpdate: Date | null;
-  updatesInLast3Months: number;
-}
+import { FeedStatus } from "./parseOPML.ts";
 
 /**
  * Analyzes an RSS/Atom feed to determine its health and update frequency
@@ -28,19 +14,54 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedStatu
     // Check if feed URL is accessible
     const response = await fetch(feedUrl);
     if (!response.ok) {
-      return { url: feedUrl, status: "dead", lastUpdate: null, updatesInLast3Months: 0 };
+      const error = `HTTP ${response.status} ${response.statusText}`;
+      console.error(`Feed was marked as compatible but HTTP request failed for ${feedUrl}: ${error}`);
+      return { 
+        url: feedUrl, 
+        status: "incompatible", 
+        lastUpdate: null, 
+        updatesInLast3Months: 0,
+        incompatibleReason: `Feed previously accessible but now returns ${error}`
+      };
     }
 
-    // Verify content type is RSS or Atom
+    // Verify content type is RSS, Atom, or general XML
     const contentType = response.headers.get("content-type");
-    if (!contentType || (!contentType.includes("application/rss+xml") && !contentType.includes("application/atom+xml"))) {
-      console.warn(`Feed URL ${feedUrl} returned unsupported content type: ${contentType}`);
-      return { url: feedUrl, status: "dead", lastUpdate: null, updatesInLast3Months: 0 };
+    // Extract base content type without charset
+    const baseContentType = contentType?.split(';')[0].trim();
+    
+    if (!baseContentType || 
+        (baseContentType !== "application/rss+xml" && 
+         baseContentType !== "application/atom+xml" &&
+         baseContentType !== "text/xml" &&
+         baseContentType !== "application/xml")) {
+      const error = `Unexpected content type: ${contentType}`;
+      console.error(`Feed was marked as compatible but returned invalid content type for ${feedUrl}: ${error}`);
+      return { 
+        url: feedUrl, 
+        status: "incompatible", 
+        lastUpdate: null, 
+        updatesInLast3Months: 0,
+        incompatibleReason: error
+      };
     }
 
     // Parse feed content
     const feedText = await response.text();
     const feed = await parseFeed(feedText);
+
+    // If feed has no entries, mark as incompatible
+    if (!feed.entries || feed.entries.length === 0) {
+      const error = "Feed contains no entries";
+      console.error(`Feed was marked as compatible but ${error} for ${feedUrl}`);
+      return {
+        url: feedUrl,
+        status: "incompatible",
+        lastUpdate: null,
+        updatesInLast3Months: 0,
+        incompatibleReason: error
+      };
+    }
 
     // Set up time windows for analysis
     const now = new Date();
@@ -53,11 +74,13 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedStatu
     // Initialize counters with default values
     let updatesInLast3Months = 0;
     let lastUpdate = new Date(twoYearsAgo);
+    let validDatesFound = false;
 
     // Analyze each entry's timestamp
     feed.entries.forEach((entry) => {
       const publishedDate = new Date(entry.published || entry.updated || "");
       if (!isNaN(publishedDate.getTime())) {
+        validDatesFound = true;
         // Update the most recent entry date if newer
         if (!lastUpdate || publishedDate > lastUpdate) {
           lastUpdate = publishedDate;
@@ -69,14 +92,40 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedStatu
       }
     });
 
+    // If no valid dates found in any entries, mark as incompatible
+    if (!validDatesFound) {
+      const error = "No valid dates found in feed entries";
+      console.error(`Feed was marked as compatible but ${error} for ${feedUrl}`);
+      return {
+        url: feedUrl,
+        status: "incompatible",
+        lastUpdate: null,
+        updatesInLast3Months: 0,
+        incompatibleReason: error
+      };
+    }
+
     // Determine feed status based on last update
     // Active if updated within last 2 years, otherwise inactive
     const status = lastUpdate > twoYearsAgo ? "active" : "inactive";
 
     return { url: feedUrl, status, lastUpdate, updatesInLast3Months };
   } catch (error) {
-    // Handle any errors during feed processing
-    console.error(`Error fetching feed data for ${feedUrl}:`, error);
-    return { url: feedUrl, status: "dead", lastUpdate: null, updatesInLast3Months: 0 };
+    // Handle any errors during feed processing with detailed logging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error(`Feed was marked as compatible but failed during update frequency check for ${feedUrl}:`);
+    console.error(`Error type: ${error?.constructor?.name}`);
+    console.error(`Error message: ${errorMessage}`);
+    if (error instanceof Error && error.stack) {
+      console.error(`Stack trace: ${error.stack}`);
+    }
+
+    return { 
+      url: feedUrl, 
+      status: "incompatible", 
+      lastUpdate: null, 
+      updatesInLast3Months: 0,
+      incompatibleReason: `Error checking update frequency: ${errorMessage}`
+    };
   }
 }

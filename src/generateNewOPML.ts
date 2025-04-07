@@ -1,6 +1,6 @@
 /**
  * Module for generating new OPML files from processed feed data
- * Creates separate OPML files for active, inactive, and dead feeds
+ * Creates separate OPML files for active, inactive, dead, and incompatible feeds
  */
 import { OPMLData } from "./parseOPML.ts";
 
@@ -9,11 +9,11 @@ import { OPMLData } from "./parseOPML.ts";
 /**
  * Generates OPML content for a specific feed status category
  * @param opmlData The processed feed data containing all categories and feeds
- * @param status The feed status to filter by ('active', 'dead', or 'inactive')
+ * @param status The feed status to filter by ('active', 'dead', 'inactive', or 'incompatible')
  * @param title The title to use in the OPML header
  * @returns A string containing the formatted OPML XML content
  */
-function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'inactive', title: string): string {
+function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'inactive' | 'incompatible', title: string): string {
   // Generate standard OPML XML header with UTF-8 encoding and version 2.0
   let opmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <opml version="2.0">
@@ -25,7 +25,7 @@ function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'in
 
   // Iterate through each category and its associated feeds
   for (const [category, feeds] of Object.entries(opmlData.categories)) {
-    // Extract only the feeds matching the requested status (active/dead/inactive)
+    // Extract only the feeds matching the requested status
     const filteredFeeds = feeds.filter((feed) => feed.status === status);
     
     // Skip empty categories to keep output clean and organized
@@ -35,15 +35,15 @@ function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'in
 `;
       
       // For active feeds only: sort by update frequency in descending order
-      // This ensures most frequently updated feeds appear first in each category
       if (status === 'active') {
         filteredFeeds.sort((a, b) => b.updatesInLast3Months - a.updatesInLast3Months);
       }
       
       // Generate outline elements for each feed in the category
-      // Each feed is represented by an outline element with text and xmlUrl attributes
       filteredFeeds.forEach((feed) => {
-        opmlContent += `      <outline text="${feed.url}" xmlUrl="${feed.url}" />
+        // For incompatible feeds, include the reason in a comment attribute
+        const commentAttr = feed.incompatibleReason ? ` comment="${feed.incompatibleReason}"` : '';
+        opmlContent += `      <outline text="${feed.url}" xmlUrl="${feed.url}"${commentAttr} />
 `;
       });
 
@@ -60,8 +60,8 @@ function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'in
 }
 
 /**
- * Generates three separate OPML files for active, dead, and inactive feeds
- * Files are named with suffixes: -active.opml, -dead.opml, -inactive.opml
+ * Generates separate OPML files for active, dead, inactive, and incompatible feeds
+ * Files are named with suffixes: -active.opml, -dead.opml, -inactive.opml, -incompatible.opml
  * 
  * @param opmlData The processed feed data to generate OPML files from
  * @param outputPath Base path for output files (suffixes will be added)
@@ -85,4 +85,8 @@ export async function generateNewOPML(opmlData: OPMLData, outputPath: string): P
   // Inactive feeds (not updated recently)
   const inactiveContent = generateOPMLContent(opmlData, 'inactive', 'Inactive Feeds');
   await Deno.writeFile(`${basePath}-inactive.opml`, encoder.encode(inactiveContent));
+
+  // Incompatible feeds (not valid RSS/Atom format)
+  const incompatibleContent = generateOPMLContent(opmlData, 'incompatible', 'Incompatible Feeds');
+  await Deno.writeFile(`${basePath}-incompatible.opml`, encoder.encode(incompatibleContent));
 }

@@ -13,17 +13,24 @@ The program aims to validate and clean up an OPML file by eliminating feeds that
 - For each feed, verify if the feed URL is accessible.
   - If the feed is not accessible, mark it as **"dead"**.
 
-### 3. Check Feed Update Frequency
+### 3. Check Feed Compatibility
+- For accessible feeds, check the feed format compatibility.
+  - If the feed is not compatible with RSS/Atom, mark it as **"incompatible"**.
+  - Save the incompatible reason (the first 100 characters of the parse error) in the feed status.
+  - If the feed is compatible, proceed to check the update frequency.
+
+### 4. Check Feed Update Frequency
 - For accessible feeds, check the most recent update time.
   - If the newest update time is more than 2 years ago, mark the feed as **"inactive"**.
   - Otherwise, mark the feed as **"active"**.
+  - Save the last update time in the feed status.
 
-### 4. Sort Active Feeds
+### 5. Sort Active Feeds
 - For feeds marked as "active":
   - Count the total number of updates in the last 3 months.
   - Sort the feeds within each category by their update frequency (highest to lowest).
 
-### 5. Generate a New OPML File
+### 6. Generate a New OPML File
 - Create a new OPML file `active_{input_file_name}.opml` that:
   - Retains only active feeds.
   - Organizes feeds within their categories.
@@ -35,30 +42,33 @@ The program aims to validate and clean up an OPML file by eliminating feeds that
   - Retains only inactive feeds.
   - Organizes feeds within their categories.
 
-### 6. Generate a Statistics File for the Processing Results
+### 7. Generate a Statistics File for the Processing Results
 - Create a new markdown file named `processing_statistics_{input_file_name}.md` that includes:
     - **Total Feeds Processed**: The total number of feeds scanned from the OPML file.
     - **Dead Feeds**: The number of feeds marked as "dead" and their percentage of the total.
+    - **Incompatible Feeds**: The number of feeds marked as "incompatible" and their percentage of the total.
     - **Inactive Feeds**: The number of feeds marked as "inactive" and their percentage of the total.
     - **Active Feeds**: The number of feeds marked as "active" and their percentage of the total.
     - **Top Categories**: A summary of the top 3 categories with the highest number of active feeds.
     - **Most Frequently Updated Feeds**: A list of the top 5 feeds with the highest update frequency in the last 3 months.
 
 - Include visualizations such as:
-    - A pie chart showing the distribution of feed statuses (active, inactive, dead).
+    - A pie chart showing the distribution of feed statuses (active, inactive, dead, incompatible).
     - A bar chart displaying the number of active feeds per category.
+    - A bar chart showing the distribution of incompatible feeds per category.
 
 - Ensure the statistics file is generated in the same directory as the new OPML file for easy reference.
-- Use a library like `deno_chart` to generate charts if needed.
+- Use a library like `Chart.js` to generate charts if needed.
 - Example structure of `processing_statistics_{input_file_name}.md`:
     ```markdown
     # Processing Statistics
 
     ## Summary
     - **Total Feeds Processed**: 120
-    - **Dead Feeds**: 30 (25%)
+    - **Dead Feeds**: 20 (16.7%)
     - **Inactive Feeds**: 40 (33.3%)
     - **Active Feeds**: 50 (41.7%)
+    - **Incompatible Feeds**: 10 (8.3%)
 
     ## Top Categories
     1. **Technology**: 20 active feeds
@@ -110,9 +120,11 @@ The program aims to validate and clean up an OPML file by eliminating feeds that
   ```typescript
   interface FeedStatus {
     url: string;
-    status: 'active' | 'inactive' | 'dead';
+    title: string;
+    status: 'active' | 'inactive' | 'dead' | 'incompatible';
     lastUpdate: Date | null;
     updatesInLast3Months: number;
+    incompatibleReason?: string; // Optional field to specify reason for incompatibility
   }
   ```
 

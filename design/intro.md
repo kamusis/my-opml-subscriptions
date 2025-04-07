@@ -127,3 +127,5 @@ The choice of programming languages and libraries significantly impacts AI-assis
 
 This project serves as a practical example of these lessons, demonstrating both the potential and limitations of AI-assisted development while highlighting the importance of making informed technology choices.
 
+The project can be found [here](https://github.com/kamusis/my-opml-subscriptions).
+

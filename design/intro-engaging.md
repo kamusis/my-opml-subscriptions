@@ -88,3 +88,5 @@ What will you build in your next two-hour miracle?
 ---
 
 *"The best way to predict the future is to create it."* This old adage has never been more true than in the age of agentic coding.
+
+The project can be found [here](https://github.com/kamusis/my-opml-subscriptions).

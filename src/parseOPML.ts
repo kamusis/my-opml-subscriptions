@@ -10,12 +10,14 @@ import { parse } from "@libs/xml";
 export interface FeedStatus {
   /** The URL of the feed */
   url: string;
-  /** Current status of the feed (active/inactive/dead) */
-  status: 'active' | 'inactive' | 'dead';
+  /** Current status of the feed (active/inactive/dead/incompatible) */
+  status: 'active' | 'inactive' | 'dead' | 'incompatible';
   /** Most recent update time of the feed, null if never updated or inaccessible */
   lastUpdate: Date | null;
   /** Number of updates in the last 3 months */
   updatesInLast3Months: number;
+  /** Reason for incompatibility if status is 'incompatible' */
+  incompatibleReason?: string;
 }
 
 /**
