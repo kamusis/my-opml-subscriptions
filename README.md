@@ -1,18 +1,19 @@
 # OPML Feed Validator and Analyzer
 
-A Deno-based tool for validating and analyzing OPML feed subscriptions. This tool helps you clean up your RSS feed subscriptions by identifying dead feeds, inactive feeds, and sorting active feeds based on their update frequency.
+A Deno-based tool for validating and analyzing OPML feed subscriptions. This tool helps you clean up your RSS feed subscriptions by identifying dead feeds, inactive feeds, incompatible feeds, and sorting active feeds based on their update frequency.
 
 ## Features
 
-- **Feed Validation**: Checks each feed's accessibility and update status
+- **Feed Validation**: Checks each feed's accessibility, compatibility, and update status
 - **Feed Classification**:
   - Active: Feeds updated within the last 2 years
   - Inactive: Feeds not updated in the last 2 years
   - Dead: Feeds that are inaccessible
+  - Incompatible: Feeds that are accessible but have format issues (e.g., wrong Content-Type, empty feeds)
 - **Update Frequency Analysis**: Tracks the number of updates in the last 3 months
 - **Category-based Organization**: Maintains feed organization by categories
-- **Statistical Analysis**: Generates detailed statistics with visualizations
-- **Multiple Output Formats**: Generates separate OPML files for active, inactive, and dead feeds
+- **Statistical Analysis**: Generates detailed statistics in markdown format
+- **Multiple Output Formats**: Generates separate OPML files for active, inactive, dead, and incompatible feeds
 
 ## Prerequisites
 
@@ -47,9 +48,8 @@ The tool generates several files in the `feeds` directory:
 - `*-active.opml`: Contains only active feeds, sorted by update frequency
 - `*-inactive.opml`: Contains inactive feeds
 - `*-dead.opml`: Contains inaccessible feeds
-- `processing_statistics.md`: Statistical analysis report
-- `feed_status_pie_chart.svg`: Visual distribution of feed statuses
-- `active_feeds_bar_chart.svg`: Top categories by active feed count
+- `*-incompatible.opml`: Contains feeds with format issues
+- `processing_statistics_*.md`: Statistical analysis report with detailed breakdown of feed statuses and error categories
 
 ## Project Structure
 
@@ -61,6 +61,7 @@ The tool generates several files in the `feeds` directory:
 │   ├── main.ts           # Main entry point
 │   ├── parseOPML.ts      # OPML parsing logic
 │   ├── checkFeedAccessibility.ts  # Feed accessibility checker
+│   ├── checkFeedCompatibility.ts  # Feed format compatibility checker
 │   ├── getFeedUpdateFrequency.ts  # Feed update frequency analyzer
 │   ├── generateNewOPML.ts # OPML generation logic
 │   └── writeStatistics.ts # Statistics generation
@@ -72,10 +73,10 @@ The tool generates several files in the `feeds` directory:
 
 The tool generates comprehensive statistics including:
 - Total number of feeds processed
-- Distribution of feed statuses (active/inactive/dead)
+- Distribution of feed statuses (active/inactive/dead/incompatible)
 - Top categories with the most active feeds
 - Most frequently updated feeds
-- Visual charts for easy analysis
+- Detailed analysis of incompatible feeds with error categories and affected URLs
 
 ## Contributing
 
