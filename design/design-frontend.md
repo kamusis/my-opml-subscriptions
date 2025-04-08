@@ -202,24 +202,46 @@ GET /api/incompatible/reasons
 
 1. Data Persistence Layer
    ```typescript
-   interface StorageService {
-     // Feed data storage
-     saveFeedData(feed: FeedRecord): Promise<void>;
-     getFeedData(url: string): Promise<FeedRecord | null>;
-     updateFeedData(url: string, data: Partial<FeedRecord>): Promise<void>;
-     
-     // Validation session management
-     saveValidationSession(id: string, data: ValidationSession): Promise<void>;
-     getValidationSession(id: string): Promise<ValidationSession | null>;
-     updateValidationProgress(id: string, progress: ValidationProgress): Promise<void>;
-     
-     // Category management
-     getCategoryStats(): Promise<CategoryStats[]>;
-     updateCategoryFeeds(category: string, feeds: string[]): Promise<void>;
-     
-     // Batch operations
-     batchUpdateFeeds(updates: FeedUpdate[]): Promise<BatchResult>;
-   }
+    // Interface reflecting the implemented KVStorageService capabilities
+    interface IKVStorageService {
+        // Lifecycle (Note: initialize is a static factory method, not part of the instance interface)
+        close(): void;
+        clearAllData(): Promise<void>; // For testing/utility
+
+        // Feed data storage
+        saveFeedData(feed: FeedRecord, options?: AtomicOptions): Promise<{ versionstamp: string }>;
+        getFeedData(url: string): Promise<{ value: FeedRecord; versionstamp: string } | null>;
+        updateFeedData(url: string, data: Partial<FeedRecord>, options?: AtomicOptions): Promise<{ versionstamp: string }>;
+        listFeeds(options: ListFeedsOptions): Promise<ListFeedsResult>; // Added for feed retrieval API
+        deleteFeedData(url: string, options?: AtomicOptions): Promise<void>; // Added for feed removal
+
+        // Validation session management
+        saveValidationSession(id: string, data: ValidationSession): Promise<{ versionstamp: string }>;
+        getValidationSession(id: string): Promise<{ value: ValidationSession; versionstamp: string } | null>;
+        updateValidationProgress(id: string, progress: ValidationProgress, options?: AtomicOptions): Promise<{ versionstamp: string }>;
+        deleteValidationSession(id: string): Promise<void>; // Added for session cleanup
+
+        // Category management
+        getCategoryStats(): Promise<CategoryStats[]>; // Uses CategoryStats from feed types
+        updateCategoryFeeds(category: string, feeds: string[], options?: AtomicOptions): Promise<{ versionstamp: string }>;
+        listCategories(): Promise<string[]>; // Added for retrieving category names
+
+        // Batch operations with atomic guarantees
+        atomic(): AtomicBatch; // Exposes atomic operation builder
+        batchUpdateFeeds(updates: FeedUpdate[]): Promise<BatchResult>;
+    }
+
+    // Supporting types (defined elsewhere, e.g., storage.types.ts)
+    interface FeedRecord { /* ... */ }
+    interface ValidationSession { /* ... */ }
+    interface ValidationProgress { /* ... */ }
+    interface CategoryStats { /* ... */ } // Ensure this matches the implementation's needs
+    interface FeedUpdate { /* ... */ }
+    interface BatchResult { /* ... */ }
+    interface AtomicOptions { /* ... */ }
+    interface ListFeedsOptions { /* ... */ }
+    interface ListFeedsResult { /* ... */ }
+    interface AtomicBatch { /* ... */ }
    ```
 
 2. WebSocket Service
@@ -259,7 +281,7 @@ src/backend/
 │   ├── storage/      # For StorageService and related files
 │   ├── websocket/    # For WebSocketService and related files
 │   └── validation/   # For ValidationService and related files
-└── types/           # For shared TypeScript interfaces and types
+└── types/            # For shared TypeScript interfaces and types
 ```
 
 ### 3.2 API Endpoints Implementation Status
