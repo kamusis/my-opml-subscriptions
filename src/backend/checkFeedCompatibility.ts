@@ -4,6 +4,20 @@
  */
 import { FeedStatus } from "./parseOPML.ts";
 import { parse } from "@libs/xml";
+import { createLogger } from "../utils/logger.ts";
+
+const logger = createLogger("feedCompatibility");
+
+interface ParsedFeed {
+  rss?: unknown;
+  "rdf:RDF"?: unknown;
+  feed?: {
+    entry?: unknown[];
+    title?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
 
 /**
  * Tests if a string appears to be RSS/Atom XML
@@ -12,7 +26,7 @@ import { parse } from "@libs/xml";
  */
 function isRssOrAtomFormat(content: string): boolean {
   try {
-    const parsed = parse(content);
+    const parsed = parse(content) as ParsedFeed;
     // Check for RSS format
     if (parsed.rss || parsed["rdf:RDF"]) {
       return true;
@@ -36,6 +50,7 @@ export async function checkFeedCompatibility(feedUrl: string): Promise<Pick<Feed
   try {
     const response = await fetch(feedUrl);
     if (!response.ok) {
+      logger.error(`HTTP error when checking feed compatibility: ${response.status} ${response.statusText}`);
       return {
         status: 'dead',
         incompatibleReason: `HTTP error: ${response.status} ${response.statusText}`
@@ -46,6 +61,7 @@ export async function checkFeedCompatibility(feedUrl: string): Promise<Pick<Feed
     
     // First try to parse as RSS/Atom
     if (isRssOrAtomFormat(content)) {
+      logger.debug(`Feed ${feedUrl} is valid RSS/Atom format`);
       return { status: 'active' };
     }
 
@@ -61,6 +77,7 @@ export async function checkFeedCompatibility(feedUrl: string): Promise<Pick<Feed
     // Truncate reason to 100 chars as specified
     const truncatedReason = reason.length > 100 ? reason.slice(0, 97) + '...' : reason;
     
+    logger.error(`Feed ${feedUrl} is incompatible: ${truncatedReason}`);
     return {
       status: 'incompatible',
       incompatibleReason: truncatedReason
@@ -69,6 +86,7 @@ export async function checkFeedCompatibility(feedUrl: string): Promise<Pick<Feed
   } catch (error: unknown) {
     // Network or other errors are considered dead feeds
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    logger.error(`Error accessing feed ${feedUrl}: ${errorMessage}`);
     return {
       status: 'dead',
       incompatibleReason: `Error accessing feed: ${errorMessage}`

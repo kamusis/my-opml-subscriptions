@@ -3,6 +3,9 @@
  * Creates markdown reports for feed status distribution
  */
 import { OPMLData } from "./parseOPML.ts";
+import { createLogger } from "../utils/logger.ts";
+
+const logger = createLogger("statistics");
 
 /**
  * Statistics gathered from OPML feed analysis
@@ -37,11 +40,15 @@ export async function generateStatistics(
   outputDir: string,
   inputFileName: string
 ): Promise<void> {
+  logger.info("Starting statistics generation");
+  
   // Calculate statistics from OPML data
   const stats = calculateStatistics(opmlData);
+  logger.info(`Found ${stats.totalFeeds} total feeds: ${stats.activeFeeds} active, ${stats.inactiveFeeds} inactive, ${stats.deadFeeds} dead, ${stats.incompatibleFeeds} incompatible`);
   
   // Generate and save markdown report
   await generateMarkdown(stats, outputDir, inputFileName);
+  logger.info("Statistics generation complete");
 }
 
 /**
@@ -74,6 +81,8 @@ function standardizeErrorReason(reason: string): string {
  * @returns Calculated statistics
  */
 function calculateStatistics(opmlData: OPMLData): Statistics {
+  logger.debug("Calculating feed statistics");
+  
   // Get all feeds and count by status
   const allFeeds = Object.values(opmlData.categories).flat();
   const totalFeeds = allFeeds.length;
@@ -129,6 +138,7 @@ function calculateStatistics(opmlData: OPMLData): Statistics {
       urls: data.urls
     }));
   
+  logger.debug("Statistics calculation complete");
   return {
     totalFeeds,
     deadFeeds,
@@ -142,26 +152,14 @@ function calculateStatistics(opmlData: OPMLData): Statistics {
 }
 
 /**
- * TODO: Implementation for chart generation will be added later
- * Placeholder function for future chart generation
- * @param stats Statistics to visualize
- * @param outputDir Output directory for charts
- */
-function _generateCharts(_stats: Statistics, _outputDir: string): {pieChartFile: string; barChartFile: string} {
-  // Dummy return with placeholder filenames
-  return {
-    pieChartFile: 'chart_generation_not_implemented.svg',
-    barChartFile: 'chart_generation_not_implemented.svg'
-  };
-}
-
-/**
  * Generate markdown report from statistics
  * @param stats Calculated statistics
  * @param outputDir Directory for output files
  * @param inputFileName Name of input file for statistics filename
  */
 async function generateMarkdown(stats: Statistics, outputDir: string, inputFileName: string) {
+  logger.debug("Generating markdown report");
+  
   const markdownContent = `# Processing Statistics
 
 ## Summary
@@ -204,4 +202,5 @@ ${category.urls.map((url, j) => `${j + 1}. ${url}`).join("\n")}
 `;
 
   await Deno.writeTextFile(`${outputDir}/processing_statistics_${inputFileName}.md`, markdownContent);
+  logger.debug("Markdown report generated");
 }

@@ -3,6 +3,9 @@
  */
 import { parseFeed } from "@mikaelporttila/rss";
 import { FeedStatus } from "./parseOPML.ts";
+import { createLogger } from "../utils/logger.ts";
+
+const logger = createLogger("feedUpdateFrequency");
 
 /**
  * Analyzes an RSS/Atom feed to determine its health and update frequency
@@ -15,7 +18,7 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedStatu
     const response = await fetch(feedUrl);
     if (!response.ok) {
       const error = `HTTP ${response.status} ${response.statusText}`;
-      console.error(`Feed was marked as compatible but HTTP request failed for ${feedUrl}: ${error}`);
+      logger.error(`Feed was marked as compatible but HTTP request failed for ${feedUrl}: ${error}`);
       return { 
         url: feedUrl, 
         status: "incompatible", 
@@ -36,7 +39,7 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedStatu
          baseContentType !== "text/xml" &&
          baseContentType !== "application/xml")) {
       const error = `Unexpected content type: ${contentType}`;
-      console.error(`Feed was marked as compatible but returned invalid content type for ${feedUrl}: ${error}`);
+      logger.error(`Feed was marked as compatible but returned invalid content type for ${feedUrl}: ${error}`);
       return { 
         url: feedUrl, 
         status: "incompatible", 
@@ -53,7 +56,7 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedStatu
     // If feed has no entries, mark as incompatible
     if (!feed.entries || feed.entries.length === 0) {
       const error = "Feed contains no entries";
-      console.error(`Feed was marked as compatible but ${error} for ${feedUrl}`);
+      logger.error(`Feed was marked as compatible but ${error} for ${feedUrl}`);
       return {
         url: feedUrl,
         status: "incompatible",
@@ -95,7 +98,7 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedStatu
     // If no valid dates found in any entries, mark as incompatible
     if (!validDatesFound) {
       const error = "No valid dates found in feed entries";
-      console.error(`Feed was marked as compatible but ${error} for ${feedUrl}`);
+      logger.error(`Feed was marked as compatible but ${error} for ${feedUrl}`);
       return {
         url: feedUrl,
         status: "incompatible",
@@ -108,16 +111,17 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedStatu
     // Determine feed status based on last update
     // Active if updated within last 2 years, otherwise inactive
     const status = lastUpdate > twoYearsAgo ? "active" : "inactive";
+    logger.debug(`Feed ${feedUrl} status: ${status}, last update: ${lastUpdate}, updates in last 3 months: ${updatesInLast3Months}`);
 
     return { url: feedUrl, status, lastUpdate, updatesInLast3Months };
   } catch (error) {
     // Handle any errors during feed processing with detailed logging
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error(`Feed was marked as compatible but failed during update frequency check for ${feedUrl}:`);
-    console.error(`Error type: ${error?.constructor?.name}`);
-    console.error(`Error message: ${errorMessage}`);
+    logger.error(`Feed was marked as compatible but failed during update frequency check for ${feedUrl}:`);
+    logger.error(`Error type: ${error?.constructor?.name}`);
+    logger.error(`Error message: ${errorMessage}`);
     if (error instanceof Error && error.stack) {
-      console.error(`Stack trace: ${error.stack}`);
+      logger.error(`Stack trace: ${error.stack}`);
     }
 
     return { 

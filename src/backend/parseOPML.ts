@@ -3,6 +3,9 @@
  * Converts OPML XML structure into a structured format for feed processing
  */
 import { parse } from "@libs/xml";
+import { createLogger } from "../utils/logger.ts";
+
+const logger = createLogger("parseOPML");
 
 /**
  * Represents the status and metadata of a single RSS/Atom feed
@@ -30,6 +33,23 @@ export interface OPMLData {
   };
 }
 
+interface ParsedOPML {
+  opml?: {
+    body?: {
+      outline: {
+        "@text"?: string;
+        "@xmlUrl"?: string;
+        outline?: unknown;
+      } | {
+        "@text"?: string;
+        "@xmlUrl"?: string;
+        outline?: unknown;
+      }[];
+    };
+  };
+  [key: string]: unknown;
+}
+
 /**
  * Parses an OPML file and converts it into structured data
  * @param filePath Path to the OPML file to parse
@@ -39,10 +59,11 @@ export interface OPMLData {
 export async function parseOPML(filePath: string): Promise<OPMLData> {
   // Read and parse the OPML file
   const fileContent = await Deno.readTextFile(filePath);
-  const parsed = parse(fileContent);
+  const parsed = parse(fileContent) as ParsedOPML;
 
   // Validate basic OPML structure
   if (!parsed.opml || !parsed.opml.body) {
+    logger.error("Invalid OPML structure in file:", filePath);
     throw new Error("Invalid OPML structure.");
   }
 
@@ -57,7 +78,7 @@ export async function parseOPML(filePath: string): Promise<OPMLData> {
   // deno-lint-ignore no-explicit-any
   const processOutline = (outline: any, category: string) => {
     if (!outline) {
-      console.warn("Encountered an undefined or null outline.");
+      logger.warn("Encountered an undefined or null outline.");
       return;
     }
 
@@ -76,12 +97,13 @@ export async function parseOPML(filePath: string): Promise<OPMLData> {
         lastUpdate: null,
         updatesInLast3Months: 0,
       });
+      logger.debug(`Added feed ${outline["@xmlUrl"]} to category ${category}`);
     } else if (outline.outline) {
       // Process nested category
       const newCategory = outline["@text"] || category || "Uncategorized";
       processOutline(outline.outline, newCategory);
     } else {
-      console.warn("Outline does not have a valid structure:", outline);
+      logger.warn("Outline does not have a valid structure:", outline);
     }
   };
 
@@ -96,5 +118,6 @@ export async function parseOPML(filePath: string): Promise<OPMLData> {
     processOutline(outlines.outline, category);
   }
 
+  logger.info(`Parsed OPML file successfully. Found ${Object.keys(categories).length} categories.`);
   return { categories };
 }

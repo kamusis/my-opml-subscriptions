@@ -390,8 +390,8 @@ interface BatchResult {
     success: boolean;
     processed: number;
     errors?: Array<{
-        feedUrl: string;
-        error: string;
+      feedUrl: string,
+      error: string
     }>;
 }
 ```
@@ -732,104 +732,47 @@ Message Types:
 - CSRF protection
 - Secure communication
 
-## 9. Logging System Design
+## 9. Logging System
 
 ### 9.1 Logging Architecture
 - Based on Deno's standard logging module (@std/log)
-- Structured logging with consistent format
-- Multiple log levels for different environments
-- Separate loggers for different components
+- Module-based logging with consistent format
+- Four standard log levels
+- One unified log format for all components
 
 ### 9.2 Log Levels
-1. DEBUG
-   - Detailed information for debugging
-   - Feed validation steps
-   - WebSocket message details
-   - State transitions
-   
-2. INFO
-   - General operational information
-   - User actions (file upload, validation start)
-   - Successful operations
-   - Category changes
-   
-3. WARNING
-   - Potential issues that don't stop operation
-   - Slow feed responses
-   - Retry attempts
-   - Performance degradation
-   
-4. ERROR
-   - Operation failures
-   - Feed validation errors
-   - API errors
-   - WebSocket connection issues
+1. DEBUG: Detailed debugging information
+2. INFO: General operational information
+3. WARN: Warning messages for potential issues
+4. ERROR: Error conditions and failures
 
-### 9.3 Log Categories
-1. Operation Logs
-   - File upload operations
-   - OPML processing
-   - Feed validation
-   - Export operations
-
-2. Performance Logs
-   - API response times
-   - Feed check durations
-   - WebSocket performance
-   - UI rendering metrics
-
-3. Error Logs
-   - Validation failures
-   - Network errors
-   - Parser errors
-   - System errors
-
-4. Security Logs
-   - File validation results
-   - Rate limit warnings
-   - Invalid access attempts
-   - Security-related events
-
-### 9.4 Log Format
-```typescript
-{
-  timestamp: string;    // ISO format
-  level: LogLevel;      // DEBUG|INFO|WARNING|ERROR
-  category: string;     // Operation|Performance|Error|Security
-  component: string;    // UI component or service name
-  message: string;      // Human-readable message
-  details?: {           // Additional structured data
-    feedUrl?: string;
-    duration?: number;
-    errorCode?: string;
-    stackTrace?: string;
-    userId?: string;
-    // ... other contextual data
-  }
-}
+### 9.3 Log Format
+```
+${LEVEL} [${ISO_TIMESTAMP}] [${MODULE}] ${MESSAGE}
 ```
 
-### 9.5 Log Storage and Rotation
+Example log messages:
+```
+DEBUG [2025-04-08T10:30:15.123Z] [feedAccessibility] Checking feed: http://example.com/feed
+INFO [2025-04-08T10:30:16.456Z] [parseOPML] Parsed OPML file successfully
+WARN [2025-04-08T10:30:17.789Z] [feedCompatibility] Unexpected content type
+ERROR [2025-04-08T10:30:18.012Z] [statistics] Failed to generate chart
+```
+
+### 9.4 Implementation
+```typescript
+const logger = createLogger("moduleName");
+logger.debug("Debug message");
+logger.info("Info message");
+logger.warn("Warning message");
+logger.error("Error message");
+```
+
+### 9.5 Log Management
 1. Development Environment
    - Console output with colors
    - Full debug information
-   - Local file storage optional
 
 2. Production Environment
-   - File-based logging
-   - Log rotation (size/time based)
-   - Compression of old logs
-   - Retention policy management
-
-### 9.7 Privacy and Security
-1. Data Protection
-   - PII (Personally Identifiable Information) filtering
-   - Sensitive data masking
-   - Access control to logs
-   - Secure log storage
-
-2. Compliance
-   - Log retention policies
-   - Data minimization
-   - Audit trail requirements
-   - Geographic restrictions
+   - Console output (can be redirected to files)
+   - Configurable log levels

@@ -3,8 +3,9 @@
  * Creates separate OPML files for active, inactive, dead, and incompatible feeds
  */
 import { OPMLData } from "./parseOPML.ts";
+import { createLogger } from "../utils/logger.ts";
 
-// TODO: handle rss feed's name: <outline type="rss" text="小武爸爸" title="小武爸爸"
+const logger = createLogger("generateOPML");
 
 /**
  * Generates OPML content for a specific feed status category
@@ -14,6 +15,8 @@ import { OPMLData } from "./parseOPML.ts";
  * @returns A string containing the formatted OPML XML content
  */
 function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'inactive' | 'incompatible', title: string): string {
+  logger.debug(`Generating OPML content for ${status} feeds`);
+  
   // Generate standard OPML XML header with UTF-8 encoding and version 2.0
   let opmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <opml version="2.0">
@@ -30,6 +33,8 @@ function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'in
     
     // Skip empty categories to keep output clean and organized
     if (filteredFeeds.length > 0) {
+      logger.debug(`Processing category ${category} with ${filteredFeeds.length} ${status} feeds`);
+      
       // Create category outline element
       opmlContent += `    <outline text="${category}">
 `;
@@ -67,6 +72,8 @@ function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'in
  * @param outputPath Base path for output files (suffixes will be added)
  */
 export async function generateNewOPML(opmlData: OPMLData, outputPath: string): Promise<void> {
+  logger.info("Starting OPML file generation");
+  
   // Set up text encoder for file writing
   const encoder = new TextEncoder();
   
@@ -75,18 +82,24 @@ export async function generateNewOPML(opmlData: OPMLData, outputPath: string): P
   
   // Generate and write OPML file for each status category
   // Active feeds (sorted by update frequency)
+  logger.info("Generating active feeds OPML file");
   const activeContent = generateOPMLContent(opmlData, 'active', 'Active Feeds');
   await Deno.writeFile(`${basePath}-active.opml`, encoder.encode(activeContent));
   
   // Dead feeds (inaccessible)
+  logger.info("Generating dead feeds OPML file");
   const deadContent = generateOPMLContent(opmlData, 'dead', 'Dead Feeds');
   await Deno.writeFile(`${basePath}-dead.opml`, encoder.encode(deadContent));
   
   // Inactive feeds (not updated recently)
+  logger.info("Generating inactive feeds OPML file");
   const inactiveContent = generateOPMLContent(opmlData, 'inactive', 'Inactive Feeds');
   await Deno.writeFile(`${basePath}-inactive.opml`, encoder.encode(inactiveContent));
 
   // Incompatible feeds (not valid RSS/Atom format)
+  logger.info("Generating incompatible feeds OPML file");
   const incompatibleContent = generateOPMLContent(opmlData, 'incompatible', 'Incompatible Feeds');
   await Deno.writeFile(`${basePath}-incompatible.opml`, encoder.encode(incompatibleContent));
+  
+  logger.info("OPML file generation complete");
 }
