@@ -1,4 +1,8 @@
-# From Software Search to Code Generation: The Agentic Coding Revolution
+---
+title: 'From Software Search to Code Generation: The Agentic Coding Revolution'
+date: 2025-04-08 15:20:11+09:00
+tags: [Deno, JavaScript, TypeScript, Agentic Coding, AI]
+---
 
 ## User Story: RSS Feed Clean-up Journey
 
