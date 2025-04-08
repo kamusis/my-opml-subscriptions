@@ -320,7 +320,10 @@
     "https://deno.land/x/xml@6.0.4/mod.ts": "b59e5c0dd9fe7ed597c21c39aacf089aa82fe5c5eaad3f411a43a9c104359f4e",
     "https://deno.land/x/xml@6.0.4/parse.ts": "1302c75d8fd40df39310bb8ae6716302f0b77c61c607437dc023d3d792a0df54",
     "https://deno.land/x/xml@6.0.4/stringify.ts": "0e2f79798d413c5386bf5de90bbe9901f99951ceae484050a8ef89e2b4da9dd0",
-    "https://deno.land/x/xml@6.0.4/wasm_xml_parser/wasm_xml_parser.js": "0804d738e6d94284b043546260b547bb4731fbfd3b3851139740e863dabf25bd"
+    "https://deno.land/x/xml@6.0.4/wasm_xml_parser/wasm_xml_parser.js": "0804d738e6d94284b043546260b547bb4731fbfd3b3851139740e863dabf25bd",
+    "https://esm.sh/preact@10.19.6/denonext/jsx-runtime.mjs": "627b6575fca4db5a785f5ed3215124212d0e1aa22ada287962ad2befa8f4fce4",
+    "https://esm.sh/preact@10.19.6/denonext/preact.mjs": "c0291d833b48fbae0c94efedab74390fd782edf63882318f5e10007100f0df75",
+    "https://esm.sh/preact@10.19.6/jsx-runtime": "e818ce449d5b732d384ffec64c1de2b542a5e01eade3d01de5c522ba1e7e8ad1"
   },
   "workspace": {
     "dependencies": [

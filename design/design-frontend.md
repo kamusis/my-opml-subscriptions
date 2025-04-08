@@ -252,6 +252,16 @@ GET /api/incompatible/reasons
    }
    ```
 
+Design following directory structure for services
+```plaintext
+src/backend/
+├── services/
+│   ├── storage/      # For StorageService and related files
+│   ├── websocket/    # For WebSocketService and related files
+│   └── validation/   # For ValidationService and related files
+└── types/           # For shared TypeScript interfaces and types
+```
+
 ### 3.2 API Endpoints Implementation Status
 
 ```

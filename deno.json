@@ -1,18 +1,51 @@
 {
+  "lock": false,
   "imports": {
     "@libs/xml": "jsr:@libs/xml@^6.0.4",
     "@mikaelporttila/rss": "jsr:@mikaelporttila/rss@^1.1.2",
     "@std/path": "jsr:@std/path@^1.0.8",
     "@std/log": "jsr:@std/log@^0.224.14",
     "deno_std_path": "https://deno.land/std@0.224.0/path/mod.ts",
+    "$fresh/": "https://deno.land/x/fresh@1.7.3/",
+    "preact": "https://esm.sh/preact@10.22.0",
+    "preact/": "https://esm.sh/preact@10.22.0/",
+    "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.3.1",
+    "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
+    "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
+    "tailwindcss": "npm:tailwindcss@3.4.1",
+    "tailwindcss/": "npm:/tailwindcss@3.4.1/",
+    "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
+    "$std/": "https://deno.land/std@0.216.0/",
     "./": "./"
   },
   "tasks": {
-    "start": "deno run --allow-read --allow-write --allow-net src/backend/main.ts",
-    "test": "deno test"
+    "backend:start": "deno run --allow-read --allow-write --allow-net src/backend/main.ts",
+    "test": "deno test",
+    "frontend:check": "deno fmt --check && deno lint && deno check src/frontend/**/*.ts && deno check src/frontend/**/*.tsx",
+    "frontend:cli": "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",
+    "frontend:manifest": "deno task frontend:cli manifest $(pwd)/src/frontend",
+    "frontend:dev": "deno run -A --watch=src/frontend/static/,src/frontend/routes/ src/frontend/dev.ts",
+    "frontend:build": "deno run -A src/frontend/dev.ts build",
+    "frontend:start": "deno run -A src/frontend/main.ts",
+    "frontend:update": "cd src/frontend && deno run -A -r https://fresh.deno.dev/update ."
   },
+  "lint": {
+    "rules": {
+      "tags": [
+        "fresh",
+        "recommended"
+      ]
+    }
+  },
+  "exclude": [
+    "**/src/frontend/_fresh/*"
+  ],
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "lib": ["deno.ns", "dom"],
     "strict": true
-  }
+  },
+  "nodeModulesDir": "auto",
+  "unstable": ["kv"]
 }
