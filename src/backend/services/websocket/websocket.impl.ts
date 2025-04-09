@@ -4,7 +4,7 @@ import {
   ValidationResults, 
   ValidationError 
 } from "../../types/validation.types.ts";
-import { WebSocketService } from "./index.ts";
+import type { WebSocketService } from "./index.ts";
 import type {
   WebSocketMessage,
   SubscribeMessage,

@@ -38,5 +38,5 @@ export interface WebSocketService {
   broadcastError(validationId: string, error: ValidationError): void;
 }
 
-// Re-export the implementation
-export * from "./websocket.impl.ts";
+// Export the implementation
+export { WebSocketServiceImpl } from "./websocket.impl.ts";

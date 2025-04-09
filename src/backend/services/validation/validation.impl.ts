@@ -1,6 +1,6 @@
 import { createLogger } from "../../../utils/logger.ts";
 import { IKVStorageService } from "../storage/index.ts";
-import { WebSocketService } from "../websocket/index.ts";
+import type { WebSocketService } from "../websocket/index.ts";
 import { 
   ValidationSession,
   ValidationProgress, 
@@ -62,59 +62,30 @@ export class ValidationServiceImpl {
   async validateFeeds(urls: string[]): Promise<ValidationResults> {
     const validationId = crypto.randomUUID();
     const startTime = Date.now();
-    const results: ValidationResults = {
-      validatedFeeds: 0,
-      categories: {
-        active: 0,
-        inactive: 0,
-        dead: 0,
-        incompatible: 0
-      },
-      duration: 0,
-      errors: []
-    };
-
-    // Initialize progress
-    const progress: ValidationProgress = {
-      processedFeeds: 0,
-      totalFeeds: urls.length,
-      categoryCounts: { ...results.categories }
-    };
-
+    
     try {
-      for (const url of urls) {
-        try {
-          const result = await this.validateSingleFeed(url);
-          results.validatedFeeds++;
-          progress.processedFeeds++;
-          progress.currentFeed = url;
-          
-          // Update category counts
-          progress.categoryCounts[result.status]++;
-          results.categories[result.status]++;
-
-          // Update progress
-          await this.updateProgress(validationId, progress);
-          
-          if (result.error) {
-            results.errors?.push({
-              feedUrl: url,
-              error: result.error,
-              timestamp: new Date().toISOString()
-            });
-          }
-        } catch (error) {
-          logger.error(`Error validating feed ${url}:`, error);
-          results.errors?.push({
-            feedUrl: url,
-            error: error instanceof Error ? error.message : 'Unknown error occurred',
-            timestamp: new Date().toISOString()
-          });
-        }
+      // Use the validateBatchFeeds method for efficient parallel processing
+      const batchResult = await this.validateBatchFeeds(urls, validationId);
+      
+      // Transform the batch result into the expected ValidationResults format
+      const results: ValidationResults = {
+        validatedFeeds: batchResult.totalProcessed,
+        categories: {
+          active: 0,
+          inactive: 0,
+          dead: 0,
+          incompatible: 0
+        },
+        duration: Date.now() - startTime,
+        errors: batchResult.errors,
+        feedResults: batchResult.results
+      };
+      
+      // Calculate category counts from feed results
+      for (const result of batchResult.results) {
+        results.categories[result.status]++;
       }
-
-      results.duration = Date.now() - startTime;
-      await this.completeValidation(validationId, results);
+      
       return results;
     } catch (error) {
       logger.error('Validation process failed:', error);
@@ -132,8 +103,7 @@ export class ValidationServiceImpl {
     }
   }
 
-  async batchValidate(urls: string[]): Promise<BatchValidationResult> {
-    const validationId = crypto.randomUUID();
+  private async validateBatchFeeds(urls: string[], validationId: string = crypto.randomUUID()): Promise<BatchValidationResult> {
     const totalFeeds = urls.length;
     let processedFeeds = 0;
     const results: FeedValidationResult[] = [];
@@ -204,7 +174,8 @@ export class ValidationServiceImpl {
         validatedFeeds: processedFeeds,
         categories: progress.categoryCounts,
         duration: 0,
-        errors
+        errors,
+        feedResults: results
       });
 
       return {

@@ -18,6 +18,8 @@ import type {
   ValidationProgress, 
   ValidationSession 
 } from "../../types/validation.types.ts";
+
+//TODO: scaling to a multi-user application! [StoragePrefix.Feed, feed.url]->[userId, StoragePrefix.Feed, feed.url]
 import { StoragePrefix } from "./storage.constants.ts";
 
 const logger = createLogger("storage");
@@ -134,6 +136,7 @@ export class KVStorageService implements IKVStorageService {
    * @param options - Filtering, sorting, and pagination options
    * @returns Promise with paginated feed list and metadata
    */
+  // TODO: implement pagination
   async listFeeds(options: ListFeedsOptions): Promise<ListFeedsResult> {
     const prefix = [StoragePrefix.Feed];
     const iter = this.kv.list<FeedRecord>({ prefix });

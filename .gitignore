@@ -54,6 +54,7 @@ yarn-error.log*
 
 # Test files
 __tests__
+yaak-test
 
 # Vibe Conding rules
 .windsurfrules

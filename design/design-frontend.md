@@ -266,11 +266,8 @@ GET /api/incompatible/reasons
      getValidationStatus(validationId: string): Promise<ValidationSession | null>; 
      
      // Feed validation
-     validateFeeds(feeds: string[]): Promise<ValidationResults>;
+     validateFeeds(feeds: string[]): Promise<ValidationResults>; // Now includes detailed feed results
      revalidateFeed(url: string): Promise<FeedValidationResult>;
-     
-     // Batch operations
-     batchValidate(urls: string[]): Promise<BatchValidationResult>;
    }
    ```
 
@@ -425,6 +422,33 @@ interface BatchResult {
       feedUrl: string,
       error: string
     }>;
+}
+
+interface ValidationResults {
+    validatedFeeds: number;
+    categories: {
+        active: number;
+        inactive: number;
+        dead: number;
+        incompatible: number;
+    };
+    duration: number;
+    errors: ValidationError[];
+    feedResults: FeedValidationResult[];
+}
+
+interface ValidationError {
+    feedUrl: string;
+    error: string;
+    timestamp: string;
+}
+
+interface FeedValidationResult {
+    url: string;
+    status: 'active' | 'inactive' | 'dead' | 'incompatible';
+    error?: string;
+    lastUpdate?: string;
+    updatesInLast3Months?: number;
 }
 ```
 
