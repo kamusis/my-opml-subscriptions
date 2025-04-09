@@ -55,8 +55,8 @@ export class KVStorageService implements IKVStorageService {
    * Creates a new instance of KVStorageService with an initialized Deno KV store
    * @returns Promise<KVStorageService> - Initialized storage service
    */
-  static async initialize(): Promise<KVStorageService> {
-    const kv = await Deno.openKv();
+  static async initialize(path?: string): Promise<KVStorageService> {
+    const kv = await Deno.openKv(path);
     return new KVStorageService(kv);
   }
 

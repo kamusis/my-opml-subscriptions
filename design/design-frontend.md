@@ -249,7 +249,7 @@ GET /api/incompatible/reasons
    interface WebSocketService {
      // Connection management
      handleConnection(client: WebSocket): void;
-     handleDisconnection(client: WebSocket): void;
+     handleDisconnection(clientId: string): void; 
      
      // Validation progress broadcasting
      broadcastProgress(validationId: string, progress: ValidationProgress): void;
@@ -263,7 +263,7 @@ GET /api/incompatible/reasons
    interface ValidationService {
      // Validation session management
      startValidation(opmlId: string): Promise<string>; // Returns validationId
-     getValidationStatus(validationId: string): Promise<ValidationStatus>;
+     getValidationStatus(validationId: string): Promise<ValidationSession | null>; 
      
      // Feed validation
      validateFeeds(feeds: string[]): Promise<ValidationResults>;
@@ -435,44 +435,43 @@ Connection: ws://server/ws
 Message Types:
 
 1. Client -> Server
-   SUBSCRIBE_VALIDATION: {
-     validationId: string
-   }
-
-   UNSUBSCRIBE_VALIDATION: {
-     validationId: string
-   }
+  subscribe: { type: 'subscribe', validationId: string }
+  unsubscribe: { type: 'unsubscribe', validationId: string }
 
 2. Server -> Client
-   VALIDATION_STARTED: {
-     validationId: string,
-     totalFeeds: number
-   }
-   
-   FEED_PROCESSED: {
-     validationId: string,
-     currentFeed: string,
-     processedCount: number,
-     totalFeeds: number,
-     status: 'active' | 'inactive' | 'dead' | 'incompatible',
-     error?: string
-   }
-   
-   VALIDATION_COMPLETE: {
-     validationId: string,
-     categories: {
-       dead: number,
-       active: number,
-       inactive: number,
-       incompatible: number
-     },
-     duration: number
-   }
+  connected: { type: 'connected', clientId: string }
+  subscribed: { type: 'subscribed', validationId: string }
+  unsubscribed: { type: 'unsubscribed', validationId: string }
+    
+  started: {
+    validationId: string,
+    totalFeeds: number
+  }
+  
+  progress: {
+    validationId: string,
+    currentFeed: string,
+    processedCount: number,
+    totalFeeds: number,
+    status: 'active' | 'inactive' | 'dead' | 'incompatible',
+    error?: string
+  }
+  
+  complete: {
+    validationId: string,
+    categories: {
+      dead: number,
+      active: number,
+      inactive: number,
+      incompatible: number
+    },
+    duration: number
+  }
 
-   VALIDATION_ERROR: {
-     validationId: string,
-     error: string
-   }
+  error: {
+    validationId: string,
+    error: string
+  }
 ```
 
 ### 3.5 Progress Tracking

@@ -12,7 +12,7 @@ export interface FeedRecord {
     updatesInLast3Months: number;
     incompatibleReason?: string;
     category: string;
-    lastValidated: string;
+    lastValidated: string | null;
     validationHistory: ValidationHistoryEntry[];
 }
 
