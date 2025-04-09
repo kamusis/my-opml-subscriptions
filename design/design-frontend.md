@@ -322,12 +322,22 @@ Implementation Notes:
 - Add filtering
 - Add sorting
 
+This endpoint will leverage the existing listFeeds function in the StorageService and support the requested features: pagination, filtering, and sorting.
+
+/api/feeds Response Format:
+{
+  feeds: FeedRecord[];  // Array of feed records
+  total: number;        // Total number of feeds matching filters
+  cursor: string | null; // Next cursor for pagination
+  hasMore: boolean;     // Whether more results are available
+}
+
 GET /api/feeds/:feedUrl
 Status: Needs Implementation
 Backend Dependencies:
 - New: StorageService.getFeedData
 Implementation Notes:
-- Return cached validation results
+- Return single feed validation results
 - Include validation history
 
 POST /api/feeds/revalidate

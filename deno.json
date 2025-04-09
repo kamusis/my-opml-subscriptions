@@ -20,6 +20,7 @@
   },
   "tasks": {
     "backend:start": "deno run --allow-read --allow-write --allow-net src/backend/main.ts",
+    "backend:db": "deno run -A --unstable-kv src/backend/services/storage/__tests__/list_all_feeds.ts --kv-path /Users/kamus/Library/Caches/deno/location_data/dbb78d2ce2a7f5168b86fab934397737ea1f9df03ab1eb14c89943ed7cc0274b/kv.sqlite3",
     "test": "deno test",
     "frontend:check": "deno fmt --check && deno lint && deno check src/frontend/**/*.ts && deno check src/frontend/**/*.tsx",
     "frontend:cli": "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",

@@ -136,7 +136,7 @@ export class KVStorageService implements IKVStorageService {
    * @param options - Filtering, sorting, and pagination options
    * @returns Promise with paginated feed list and metadata
    */
-  // TODO: implement pagination
+ 
   async listFeeds(options: ListFeedsOptions): Promise<ListFeedsResult> {
     const prefix = [StoragePrefix.Feed];
     const iter = this.kv.list<FeedRecord>({ prefix });
