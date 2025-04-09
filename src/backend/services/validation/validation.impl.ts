@@ -59,8 +59,7 @@ export class ValidationServiceImpl {
     }
   }
 
-  async validateFeeds(urls: string[]): Promise<ValidationResults> {
-    const validationId = crypto.randomUUID();
+  async validateFeeds(urls: string[], validationId: string): Promise<ValidationResults> {
     const startTime = Date.now();
     
     try {

@@ -77,7 +77,7 @@ export const handler: Handlers = {
           
           // Start the validation process which will update progress via WebSockets
           // and return detailed results for each feed
-          const results = await validationService.validateFeeds(feedUrls);
+          const results = await validationService.validateFeeds(feedUrls, validationId);
           logger.info(`Validation completed for ${results.validatedFeeds} feeds`);
           
           // Update feed records with validation results
