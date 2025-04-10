@@ -344,15 +344,24 @@ Implementation Notes:
 - Implement batch operations
 - Add progress tracking
 
-// need to redesign, can accept multiple feeds, all the selected feeds in frontend page
-GET /api/export
-Status: Implemented
-Backend Dependencies:
-- Existing: generateNewOPML
-Implementation Notes:
-- Already fully implemented
+POST /api/export
+- Purpose: For sending selected feed data to generate OPML
+- Request Body:
+{
+  feeds: FeedRecord[]; // Array of selected feed records to export
+  options?: {
+    includeValidationHistory?: boolean; // Whether to include validation history
+    includeCategoryStructure?: boolean; // Whether to maintain category structure
+  }
+}
+- Response: 
+Content-Type: application/xml (OPML format)
+Headers: 
+- Content-Disposition: attachment; filename="export_<timestamp>.opml"
+Body: Generated OPML file content
 
 // need to redesign the backend, if call from frontend, no need to write markdown by default.
+// perhaps add a new function handle the frontend request
 GET /api/categories/stats
 Status: Partial Implementation
 Backend Dependencies:

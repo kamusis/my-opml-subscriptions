@@ -103,3 +103,56 @@ export async function generateNewOPML(opmlData: FeedCollection, outputPath: stri
   
   logger.info("OPML file generation complete");
 }
+
+/**
+ * Generates a single OPML file content for API export
+ * @param opmlData The processed feed data to generate OPML from
+ * @param options Export options
+ * @returns A string containing the formatted OPML XML content
+ */
+export function generateOPMLForExport(
+  opmlData: FeedCollection, 
+  options?: { 
+    title?: string;
+    includeAllStatuses?: boolean;
+  }
+): string {
+  const title = options?.title || "Exported Feeds";
+  
+  if (options?.includeAllStatuses) {
+    // Combine all statuses into a single OPML file
+    let combinedContent = `<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>${title}</title>
+  </head>
+  <body>
+`;
+
+    // Process each category
+    for (const [category, feeds] of Object.entries(opmlData.categories)) {
+      if (feeds.length > 0) {
+        combinedContent += `    <outline text="${category}">
+`;
+        
+        // Add all feeds in this category
+        feeds.forEach((feed) => {
+          const commentAttr = feed.incompatibleReason ? ` comment="${feed.incompatibleReason}"` : '';
+          combinedContent += `      <outline text="${feed.url}" xmlUrl="${feed.url}"${commentAttr} />
+`;
+        });
+        
+        combinedContent += `    </outline>
+`;
+      }
+    }
+    
+    combinedContent += `  </body>
+</opml>`;
+    
+    return combinedContent;
+  } else {
+    // Use the existing function to generate content for active feeds only
+    return generateOPMLContent(opmlData, 'active', title);
+  }
+}

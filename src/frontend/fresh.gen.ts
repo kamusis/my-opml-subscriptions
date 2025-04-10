@@ -4,6 +4,7 @@
 
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $api_export from "./routes/api/export.ts";
 import * as $api_feeds from "./routes/api/feeds.ts";
 import * as $api_status from "./routes/api/status.ts";
 import * as $api_upload from "./routes/api/upload.ts";
@@ -17,6 +18,7 @@ const manifest = {
   routes: {
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
+    "./routes/api/export.ts": $api_export,
     "./routes/api/feeds.ts": $api_feeds,
     "./routes/api/status.ts": $api_status,
     "./routes/api/upload.ts": $api_upload,
