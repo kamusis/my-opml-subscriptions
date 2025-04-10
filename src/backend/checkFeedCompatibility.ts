@@ -2,7 +2,7 @@
  * Module for checking RSS/Atom feed compatibility
  * Validates if a feed URL returns valid RSS/Atom formatted content
  */
-import { FeedStatus } from "./parseOPML.ts";
+import { FeedStatus } from "./types/feed.types.ts";
 import { parse } from "@libs/xml";
 import { createLogger } from "../utils/logger.ts";
 
@@ -46,7 +46,7 @@ function isRssOrAtomFormat(content: string): boolean {
  * @param url The URL to check for feed compatibility
  * @returns Promise resolving to feed compatibility status
  */
-export async function checkFeedCompatibility(feedUrl: string): Promise<Pick<FeedStatus, 'status' | 'incompatibleReason'>> {
+export async function checkFeedCompatibility(feedUrl: string): Promise<{ status: FeedStatus; incompatibleReason?: string }> {
   try {
     const response = await fetch(feedUrl);
     if (!response.ok) {

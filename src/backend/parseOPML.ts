@@ -4,34 +4,9 @@
  */
 import { parse } from "@libs/xml";
 import { createLogger } from "../utils/logger.ts";
+import { FeedCollection, FeedEntry } from "./types/feed.types.ts";
 
 const logger = createLogger("parseOPML");
-
-/**
- * Represents the status and metadata of a single RSS/Atom feed
- */
-export interface FeedStatus {
-  /** The URL of the feed */
-  url: string;
-  /** Current status of the feed (active/inactive/dead/incompatible) */
-  status: 'active' | 'inactive' | 'dead' | 'incompatible';
-  /** Most recent update time of the feed, null if never updated or inaccessible */
-  lastUpdate: Date | null;
-  /** Number of updates in the last 3 months */
-  updatesInLast3Months: number;
-  /** Reason for incompatibility if status is 'incompatible' */
-  incompatibleReason?: string;
-}
-
-/**
- * Structured representation of OPML data, organized by categories
- */
-export interface OPMLData {
-  /** Map of category names to arrays of feeds in that category */
-  categories: {
-    [categoryName: string]: FeedStatus[];
-  };
-}
 
 interface ParsedOPML {
   opml?: {
@@ -56,7 +31,7 @@ interface ParsedOPML {
  * @returns Promise resolving to structured OPML data
  * @throws Error if OPML structure is invalid
  */
-export async function parseOPML(filePath: string): Promise<OPMLData> {
+export async function parseOPML(filePath: string): Promise<FeedCollection> {
   // Read and parse the OPML file
   const fileContent = await Deno.readTextFile(filePath);
   const parsed = parse(fileContent) as ParsedOPML;
@@ -67,7 +42,7 @@ export async function parseOPML(filePath: string): Promise<OPMLData> {
     throw new Error("Invalid OPML structure.");
   }
 
-  const categories: OPMLData["categories"] = {};
+  const categories: FeedCollection["categories"] = {};
   const outlines = parsed.opml.body.outline;
 
   /**
@@ -96,7 +71,7 @@ export async function parseOPML(filePath: string): Promise<OPMLData> {
         status: "dead",
         lastUpdate: null,
         updatesInLast3Months: 0,
-      });
+      } as FeedEntry);
       logger.debug(`Added feed ${outline["@xmlUrl"]} to category ${category}`);
     } else if (outline.outline) {
       // Process nested category

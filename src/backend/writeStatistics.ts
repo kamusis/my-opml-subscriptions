@@ -2,7 +2,7 @@
  * Module for generating statistics for OPML feed analysis
  * Creates markdown reports for feed status distribution
  */
-import { OPMLData } from "./parseOPML.ts";
+import { FeedCollection } from "./types/feed.types.ts";
 import { createLogger } from "../utils/logger.ts";
 
 const logger = createLogger("statistics");
@@ -36,7 +36,7 @@ interface Statistics {
  * @param inputFileName Name of input file for statistics filename
  */
 export async function generateStatistics(
-  opmlData: OPMLData,
+  opmlData: FeedCollection,
   outputDir: string,
   inputFileName: string
 ): Promise<void> {
@@ -80,7 +80,7 @@ function standardizeErrorReason(reason: string): string {
  * @param opmlData Processed OPML data
  * @returns Calculated statistics
  */
-function calculateStatistics(opmlData: OPMLData): Statistics {
+function calculateStatistics(opmlData: FeedCollection): Statistics {
   logger.debug("Calculating feed statistics");
   
   // Get all feeds and count by status

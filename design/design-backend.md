@@ -116,24 +116,52 @@ The program aims to validate and clean up an OPML file by eliminating feeds that
    - Defines the Deno project configuration, including imports map for external modules, task definitions for running and testing the project, and compiler options for stricter type checking and compatibility with Deno and DOM APIs.
 
 ### Data Structures
-- **FeedStatus**:
+
+#### Type Hierarchy
+The application uses a structured type hierarchy for feed-related data:
+
+- **FeedBase** - Base interface with common properties:
   ```typescript
-  interface FeedStatus {
+  interface FeedBase {
     url: string;
-    title: string;
     status: 'active' | 'inactive' | 'dead' | 'incompatible';
-    lastUpdate: Date | null;
+    lastUpdate: string | null;
     updatesInLast3Months: number;
     incompatibleReason?: string; // Optional field to specify reason for incompatibility
   }
   ```
 
-- **OPMLData**:
+- **FeedEntry** - Used for OPML processing:
   ```typescript
-  interface OPMLData {
+  interface FeedEntry extends FeedBase {
+    // Currently identical to FeedBase, but can be extended with specific properties
+  }
+  ```
+
+- **FeedRecord** - Used for storage operations:
+  ```typescript
+  interface FeedRecord extends FeedBase {
+    category: string;
+    lastValidated: string | null;
+    validationHistory: ValidationHistoryEntry[];
+  }
+  ```
+
+- **FeedCollection** - Structured representation of OPML data:
+  ```typescript
+  interface FeedCollection {
     categories: {
-      [categoryName: string]: FeedStatus[];
+      [categoryName: string]: FeedEntry[];
     };
+  }
+  ```
+
+- **ValidationHistoryEntry** - Records validation attempts:
+  ```typescript
+  interface ValidationHistoryEntry {
+    timestamp: string;
+    status: 'active' | 'inactive' | 'dead' | 'incompatible';
+    error?: string;
   }
   ```
 

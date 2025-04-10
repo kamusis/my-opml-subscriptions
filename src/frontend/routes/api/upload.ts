@@ -101,7 +101,7 @@ export const handler: Handlers = {
           const feedRecord: FeedRecord = {
             url: feed.url,
             status: feed.status,
-            lastUpdate: feed.lastUpdate?.toISOString() ?? null,
+            lastUpdate: feed.lastUpdate ?? null,
             updatesInLast3Months: feed.updatesInLast3Months,
             incompatibleReason: feed.incompatibleReason,
             category,

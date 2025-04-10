@@ -2,7 +2,7 @@
  * RSS/Atom feed parser module that checks feed health and update frequency
  */
 import { parseFeed } from "@mikaelporttila/rss";
-import { FeedStatus } from "./parseOPML.ts";
+import { FeedEntry } from "./types/feed.types.ts";
 import { createLogger } from "../utils/logger.ts";
 
 const logger = createLogger("feedUpdateFrequency");
@@ -12,7 +12,7 @@ const logger = createLogger("feedUpdateFrequency");
  * @param feedUrl The URL of the feed to analyze
  * @returns Promise<FeedStatus> Status information about the feed
  */
-export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedStatus> {
+export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry> {
   try {
     // Check if feed URL is accessible
     const response = await fetch(feedUrl);
@@ -113,7 +113,12 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedStatu
     const status = lastUpdate > twoYearsAgo ? "active" : "inactive";
     logger.debug(`Feed ${feedUrl} status: ${status}, last update: ${lastUpdate}, updates in last 3 months: ${updatesInLast3Months}`);
 
-    return { url: feedUrl, status, lastUpdate, updatesInLast3Months };
+    return { 
+      url: feedUrl, 
+      status, 
+      lastUpdate: lastUpdate ? lastUpdate.toISOString() : null, 
+      updatesInLast3Months 
+    };
   } catch (error) {
     // Handle any errors during feed processing with detailed logging
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

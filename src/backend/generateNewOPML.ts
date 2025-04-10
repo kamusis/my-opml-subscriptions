@@ -2,7 +2,7 @@
  * Module for generating new OPML files from processed feed data
  * Creates separate OPML files for active, inactive, dead, and incompatible feeds
  */
-import { OPMLData } from "./parseOPML.ts";
+import { FeedCollection, FeedEntry, FeedStatus } from "./types/feed.types.ts";
 import { createLogger } from "../utils/logger.ts";
 
 const logger = createLogger("generateOPML");
@@ -14,7 +14,7 @@ const logger = createLogger("generateOPML");
  * @param title The title to use in the OPML header
  * @returns A string containing the formatted OPML XML content
  */
-function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'inactive' | 'incompatible', title: string): string {
+function generateOPMLContent(opmlData: FeedCollection, status: FeedStatus, title: string): string {
   logger.debug(`Generating OPML content for ${status} feeds`);
   
   // Generate standard OPML XML header with UTF-8 encoding and version 2.0
@@ -29,7 +29,7 @@ function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'in
   // Iterate through each category and its associated feeds
   for (const [category, feeds] of Object.entries(opmlData.categories)) {
     // Extract only the feeds matching the requested status
-    const filteredFeeds = feeds.filter((feed) => feed.status === status);
+    const filteredFeeds = feeds.filter((feed: FeedEntry) => feed.status === status);
     
     // Skip empty categories to keep output clean and organized
     if (filteredFeeds.length > 0) {
@@ -41,11 +41,11 @@ function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'in
       
       // For active feeds only: sort by update frequency in descending order
       if (status === 'active') {
-        filteredFeeds.sort((a, b) => b.updatesInLast3Months - a.updatesInLast3Months);
+        filteredFeeds.sort((a: FeedEntry, b: FeedEntry) => b.updatesInLast3Months - a.updatesInLast3Months);
       }
       
       // Generate outline elements for each feed in the category
-      filteredFeeds.forEach((feed) => {
+      filteredFeeds.forEach((feed: FeedEntry) => {
         // For incompatible feeds, include the reason in a comment attribute
         const commentAttr = feed.incompatibleReason ? ` comment="${feed.incompatibleReason}"` : '';
         opmlContent += `      <outline text="${feed.url}" xmlUrl="${feed.url}"${commentAttr} />
@@ -71,7 +71,7 @@ function generateOPMLContent(opmlData: OPMLData, status: 'active' | 'dead' | 'in
  * @param opmlData The processed feed data to generate OPML files from
  * @param outputPath Base path for output files (suffixes will be added)
  */
-export async function generateNewOPML(opmlData: OPMLData, outputPath: string): Promise<void> {
+export async function generateNewOPML(opmlData: FeedCollection, outputPath: string): Promise<void> {
   logger.info("Starting OPML file generation");
   
   // Set up text encoder for file writing

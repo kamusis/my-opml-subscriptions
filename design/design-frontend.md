@@ -82,14 +82,7 @@ GET /api/feeds
 - Purpose: Retrieve feed list
 - Query: ?filter=string&sort=string&category=string&status=string&page=number&limit=number
 - Response: {
-    feeds: Array<{
-      url: string,
-      status: 'active' | 'inactive' | 'dead' | 'incompatible',
-      lastUpdate: string | null,
-      updatesInLast3Months: number,
-      incompatibleReason?: string,
-      category: string
-    }>,
+    feeds: Array<FeedRecord>,
     total: number,
     page: number,
     totalPages: number
@@ -97,19 +90,7 @@ GET /api/feeds
 
 GET /api/feeds/:feedUrl
 - Purpose: Get detailed information about a specific feed
-- Response: {
-    url: string,
-    status: 'active' | 'inactive' | 'dead' | 'incompatible',
-    lastUpdate: string | null,
-    updatesInLast3Months: number,
-    incompatibleReason?: string,
-    category: string,
-    validationHistory: Array<{
-      timestamp: string,
-      status: string,
-      error?: string
-    }>
-  }
+- Response: FeedRecord
 
 POST /api/feeds/revalidate
 - Purpose: Revalidate specific feeds
@@ -195,8 +176,11 @@ GET /api/incompatible/reasons
    - `generateStatistics`: Statistics calculation
 
 2. Data Structures
-   - `FeedStatus`: Basic feed information structure
-   - `OPMLData`: Category-organized feed data structure
+   - `FeedBase`: Base interface with common feed properties
+   - `FeedEntry`: Feed entry used in OPML processing
+   - `FeedRecord`: Extended feed record used for storage
+   - `FeedCollection`: Category-organized collection of feeds
+   - `ValidationHistoryEntry`: Records validation attempts
 
 #### Required New Backend Components
 
@@ -332,6 +316,7 @@ This endpoint will leverage the existing listFeeds function in the StorageServic
   hasMore: boolean;     // Whether more results are available
 }
 
+//no need for implementation at the moment
 GET /api/feeds/:feedUrl
 Status: Needs Implementation
 Backend Dependencies:
@@ -340,6 +325,7 @@ Implementation Notes:
 - Return single feed validation results
 - Include validation history
 
+//no need for implementation at the moment
 POST /api/feeds/revalidate
 Status: Partial Implementation
 Backend Dependencies:
@@ -349,6 +335,7 @@ Implementation Notes:
 - Implement selective revalidation
 - Add progress tracking
 
+//no need for implementation at the moment
 POST /api/feeds/batch
 Status: Needs Implementation
 Backend Dependencies:
@@ -357,6 +344,7 @@ Implementation Notes:
 - Implement batch operations
 - Add progress tracking
 
+// need to redesign, can accept multiple feeds, all the selected feeds in frontend page
 GET /api/export
 Status: Implemented
 Backend Dependencies:
@@ -364,6 +352,7 @@ Backend Dependencies:
 Implementation Notes:
 - Already fully implemented
 
+// need to redesign the backend, if call from frontend, no need to write markdown by default.
 GET /api/categories/stats
 Status: Partial Implementation
 Backend Dependencies:

@@ -3,23 +3,46 @@
  */
 
 /**
- * Represents a feed record with all its metadata and validation history
- */
-export interface FeedRecord {
-    url: string;
-    status: FeedStatus;
-    lastUpdate: string | null;
-    updatesInLast3Months: number;
-    incompatibleReason?: string;
-    category: string;
-    lastValidated: string | null;
-    validationHistory: ValidationHistoryEntry[];
-}
-
-/**
  * Possible states for a feed
  */
 export type FeedStatus = 'active' | 'inactive' | 'dead' | 'incompatible';
+
+/**
+ * Base feed interface with common properties shared across the application
+ */
+export interface FeedBase {
+    /** The URL of the feed */
+    url: string;
+    /** Current status of the feed (active/inactive/dead/incompatible) */
+    status: FeedStatus;
+    /** Most recent update time of the feed, null if never updated or inaccessible */
+    lastUpdate: string | null;
+    /** Number of updates in the last 3 months */
+    updatesInLast3Months: number;
+    /** Reason for incompatibility if status is 'incompatible' */
+    incompatibleReason?: string;
+}
+
+/**
+ * Represents a feed entry specifically for OPML processing
+ * This is equivalent to the previous FeedStatus interface in parseOPML.ts
+ */
+export interface FeedEntry extends FeedBase {
+    // Currently identical to FeedBase, but can be extended with specific properties
+}
+
+/**
+ * Represents a feed record with all its metadata and validation history
+ * Used primarily by the storage service
+ */
+export interface FeedRecord extends FeedBase {
+    /** Category the feed belongs to */
+    category: string;
+    /** When the feed was last validated */
+    lastValidated: string | null;
+    /** History of validation attempts and results */
+    validationHistory: ValidationHistoryEntry[];
+}
 
 /**
  * An entry in the feed's validation history
@@ -52,4 +75,15 @@ export interface CategoryStats {
 export interface FeedUpdate {
     url: string;
     data: Partial<FeedRecord>;
+}
+
+/**
+ * Structured representation of OPML data, organized by categories
+ * This is equivalent to the previous OPMLData interface in parseOPML.ts
+ */
+export interface FeedCollection {
+    /** Map of category names to arrays of feeds in that category */
+    categories: {
+        [categoryName: string]: FeedEntry[];
+    };
 }
