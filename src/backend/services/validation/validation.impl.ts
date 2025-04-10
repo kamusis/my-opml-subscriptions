@@ -216,7 +216,7 @@ export class ValidationServiceImpl {
       url,
       status: updateCheck.status,
       error: updateCheck.incompatibleReason,
-      lastUpdate: updateCheck.lastUpdate?.toISOString(),
+      lastUpdate: updateCheck.lastUpdate || undefined, // Convert null to undefined to match expected type
       updatesInLast3Months: updateCheck.updatesInLast3Months
     };
   }
