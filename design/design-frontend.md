@@ -267,7 +267,7 @@ src/backend/
 
 ### 3.2 API Endpoints Implementation Status
 
-```
+```markdown
 POST /api/upload
 Status: Needs Implementation
 Backend Dependencies:

@@ -17,7 +17,7 @@ A Deno-based tool for validating and analyzing OPML feed subscriptions. This too
 
 ## Prerequisites
 
-- [Deno](https://deno.land/) 1.x or higher
+- [Deno](https://deno.land/) 2.x or higher
 - macOS, Linux, or Windows
 
 ## Installation
