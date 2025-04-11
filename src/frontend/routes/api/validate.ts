@@ -2,31 +2,15 @@ import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import { ValidationServiceImpl } from "../../../backend/services/validation/index.ts";
-import { WebSocketServiceImpl } from "../../../backend/services/websocket/index.ts";
+import { getMockWebSocketService } from "../../../backend/services/websocket/mock-websocket.service.ts";
 import type { ListFeedsOptions } from "../../../backend/types/storage.types.ts";
-
-// Create singleton instances for services
-let storageInstance: KVStorageService | null = null;
-let websocketInstance: WebSocketServiceImpl | null = null;
 
 /**
  * Get or create the storage service instance
+ * TODO: Refactor to use shared instance from service_instances.ts if uncommented there
  */
 async function getStorageService(): Promise<KVStorageService> {
-  if (!storageInstance) {
-    storageInstance = await KVStorageService.initialize();
-  }
-  return storageInstance;
-}
-
-/**
- * Get or create the websocket service instance
- */
-function getWebSocketService(): WebSocketServiceImpl {
-  if (!websocketInstance) {
-    websocketInstance = new WebSocketServiceImpl();
-  }
-  return websocketInstance;
+  return await KVStorageService.initialize(); // Assuming fresh instance per request for now
 }
 
 const logger = createLogger("api:validate");
@@ -46,8 +30,8 @@ export const handler: Handlers = {
 
       // Get service instances
       const storage = await getStorageService();
-      const websocketService = getWebSocketService();
-      const validationService = new ValidationServiceImpl(storage, websocketService);
+      const mockWebSocketService = getMockWebSocketService();
+      const validationService = new ValidationServiceImpl(storage, mockWebSocketService);
 
       // Generate a unique validation ID
       const opmlId = (requestBody as { opmlId?: string })?.opmlId || "default";
@@ -75,37 +59,11 @@ export const handler: Handlers = {
         try {
           logger.info(`Starting validation process for ${feedUrls.length} feeds`);
           
-          // Start the validation process which will update progress via WebSockets
+          // Start the validation process which will update progress via KV storage
           // and return detailed results for each feed
+          // Feed records are now updated during individual validation in validateBatchFeeds
           const results = await validationService.validateFeeds(feedUrls, validationId);
           logger.info(`Validation completed for ${results.validatedFeeds} feeds`);
-          
-          // Update feed records with validation results
-          for (const feedResult of results.feedResults) {
-            try {
-              const now = new Date().toISOString();
-              const feed = feedsResult.feeds.find(f => f.url === feedResult.url);
-              
-              if (feed) {
-                // Update the feed data with validation results
-                await storage.updateFeedData(feed.url, {
-                  status: feedResult.status,
-                  lastUpdate: feedResult.lastUpdate || feed.lastUpdate,
-                  updatesInLast3Months: feedResult.updatesInLast3Months || feed.updatesInLast3Months,
-                  incompatibleReason: feedResult.error || feed.incompatibleReason,
-                  lastValidated: now,
-                  validationHistory: [
-                    ...(feed.validationHistory || []).slice(0, 9), // Keep last 10 validations
-                    { timestamp: now, status: feedResult.status }
-                  ]
-                });
-                
-                logger.debug(`Updated feed data for ${feed.url}, status: ${feedResult.status}`);
-              }
-            } catch (error) {
-              logger.error(`Failed to update feed data for ${feedResult.url}:`, error);
-            }
-          }
         } catch (error) {
           logger.error("Error during validation process:", error);
         }
@@ -150,8 +108,8 @@ export const handler: Handlers = {
 
       // Get service instances
       const storage = await getStorageService();
-      const websocketService = getWebSocketService();
-      const validationService = new ValidationServiceImpl(storage, websocketService);
+      const mockWebSocketService = getMockWebSocketService();
+      const validationService = new ValidationServiceImpl(storage, mockWebSocketService);
 
       // Get validation status
       const status = await validationService.getValidationStatus(validationId);

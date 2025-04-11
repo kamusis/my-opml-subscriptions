@@ -9,9 +9,14 @@ import * as $api_feeds from "./routes/api/feeds.ts";
 import * as $api_status from "./routes/api/status.ts";
 import * as $api_upload from "./routes/api/upload.ts";
 import * as $api_validate from "./routes/api/validate.ts";
+import * as $api_validation_status from "./routes/api/validation-status.ts";
 import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
+import * as $ws from "./routes/ws.ts";
 import * as $Counter from "./islands/Counter.tsx";
+import * as $FeedListControls from "./islands/FeedListControls.tsx";
+import * as $OPMLUploaderIsland from "./islands/OPMLUploaderIsland.tsx";
+import * as $ValidationStatus from "./islands/ValidationStatus.tsx";
 import type { Manifest } from "$fresh/server.ts";
 
 const manifest = {
@@ -23,11 +28,16 @@ const manifest = {
     "./routes/api/status.ts": $api_status,
     "./routes/api/upload.ts": $api_upload,
     "./routes/api/validate.ts": $api_validate,
+    "./routes/api/validation-status.ts": $api_validation_status,
     "./routes/greet/[name].tsx": $greet_name_,
     "./routes/index.tsx": $index,
+    "./routes/ws.ts": $ws,
   },
   islands: {
     "./islands/Counter.tsx": $Counter,
+    "./islands/FeedListControls.tsx": $FeedListControls,
+    "./islands/OPMLUploaderIsland.tsx": $OPMLUploaderIsland,
+    "./islands/ValidationStatus.tsx": $ValidationStatus,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest;

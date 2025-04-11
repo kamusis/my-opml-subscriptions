@@ -148,6 +148,31 @@ export class ValidationServiceImpl {
               // Update progress in storage and broadcast
               await this.updateProgress(validationId, progress);
               
+              // Update feed record immediately after validation
+              try {
+                const existingFeed = await this.storage.getFeedData(url);
+                const now = new Date().toISOString();
+                
+                if (existingFeed?.value) {
+                  const feed = existingFeed.value;
+                  await this.storage.updateFeedData(url, {
+                    status: result.status,
+                    lastUpdate: result.lastUpdate || feed.lastUpdate,
+                    updatesInLast3Months: result.updatesInLast3Months || feed.updatesInLast3Months,
+                    incompatibleReason: result.error || feed.incompatibleReason,
+                    lastValidated: now,
+                    validationHistory: [
+                      ...(feed.validationHistory || []).slice(0, 9),
+                      { timestamp: now, status: result.status }
+                    ]
+                  });
+                  logger.debug(`Updated feed data for ${url}, status: ${result.status}`);
+                }
+              } catch (updateError) {
+                logger.error(`Failed to update feed data for ${url}:`, updateError);
+                // Don't throw - allow validation to continue even if feed updates fail
+              }
+              
               return result;
             } catch (error) {
               const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
