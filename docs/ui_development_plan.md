@@ -26,37 +26,41 @@ This document outlines the steps to build the user interface components for the 
     *   Connect the form submission to the `POST /api/upload` endpoint.
     *   Display upload progress (basic indicator first).
     *   Handle success and error responses from the API (e.g., show messages to the user).
-    *   On successful upload, list all the feeds and provide a button to call the validation process.
-3.  **Feed List Page (`routes/feeds.tsx`)**:
-    *   Create a new route for displaying the list of feeds.
-    *   Fetch feed data from `GET /api/feeds` on page load.
-    *   Display feeds in a table or list format, showing key information (URL, Status, Category, Last Updated).
+3.  **Feed List Component (`components/FeedList.tsx`, `islands/FeedListControls.tsx`)**:
+    *   Create components for displaying the list of feeds directly on the main page.
+    *   Integrate feed list display within the `OPMLUploaderIsland` component.
+    *   Fetch feed data from `GET /api/feeds` after successful upload.
+    *   Display feeds in a table format, showing key information (URL, Status, Category, Last Updated, etc.).
+    *   Implement loading states and empty state handling.
 
 ## Phase 2: Feed Display & Validation Monitoring
 
 4.  **Validation Trigger & Status Component (`islands/ValidationStatus.tsx`)**:
-    *   Add a button on the `index.tsx` page (the main page after upload) to trigger the validation process via `POST /api/validate`.
+    *   Add a validation component on the main page to trigger the validation process via `POST /api/validate`.
     *   Create an island component to handle the validation state.
-    *   Implement WebSocket connection logic within the island to listen for `progress`, `complete`, and `error` events for the triggered `validationId`.
+    *   Implement polling mechanism to check validation status via `GET /api/validation-status`.
     *   Display real-time validation progress (e.g., "Processing feed X of Y", progress bar).
-    *   Update the feed list dynamically (or prompt refresh) as validation completes to show updated statuses.
+    *   Update the feed list dynamically as validation completes to show updated statuses.
     *   Display any errors reported during validation.
 5.  **Feed List Enhancements (`islands/FeedListControls.tsx`)**:
-    *   Create an island for interactive controls for the feed list on `routes/feeds.tsx`.
+    *   Enhance the existing feed list controls component with filtering and sorting capabilities.
     *   Implement client-side filtering controls (e.g., dropdowns for Status, Category, text input for URL search).
     *   Implement sorting controls (e.g., clickable table headers).
     *   Update the list by re-fetching data from `GET /api/feeds` with the appropriate query parameters based on user interaction.
 
 ## Phase 3: Export & Refinements
 
-6.  **Export Functionality (`islands/ExportButton.tsx`)**:
-    *   Add an "Export OPML" button to the `routes/feeds.tsx` page.
+6.  **Feed List Enhancements (`islands/FeedListControls.tsx`)**:
+    *   Add selection controls (checkboxes) for feeds.
+    *   Add multi-selection controls, eg. select all the feeds with a specific status, category, etc.
+7.  **Export Functionality (`islands/ExportButton.tsx`)**:
+    *   Add an "Export OPML" button to the main page.
     *   Create an island to handle the export logic.
-    *   Gather the list of currently displayed/filtered feeds (or implement selection).
+    *   Gather the list of currently selected feeds.
     *   Send the feed list to `POST /api/export`.
     *   Handle the file download response initiated by the API.
     *   Provide options (via UI controls) for `includeCategoryStructure`.
-7.  **UI Polishing & Error Handling**:
+8.  **UI Polishing & Error Handling**:
     *   Refine styling using Tailwind CSS for a clean and user-friendly interface.
     *   Improve loading states and feedback messages across all components.
     *   Ensure consistent error handling and display informative error messages.
