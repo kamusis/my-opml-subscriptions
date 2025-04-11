@@ -35,9 +35,26 @@ export const handler: Handlers = {
       }
 
       // Validate file type
-      if (!file.name.toLowerCase().endsWith(".opml")) {
+      const isCompatibleFileType = (fileName: string): boolean => {
+        const lowerCaseName = fileName.toLowerCase();
+        // Accept .opml files (primary format)
+        if (lowerCaseName.endsWith(".opml")) return true;
+        
+        // Accept .xml files (potentially compatible)
+        if (lowerCaseName.endsWith(".xml")) return true;
+        
+        // Accept .rss and .atom files (feed formats that might be convertible)
+        if (lowerCaseName.endsWith(".rss") || lowerCaseName.endsWith(".atom")) return true;
+        
+        // Accept .txt files (might contain feed URLs)
+        if (lowerCaseName.endsWith(".txt")) return true;
+        
+        return false;
+      };
+      
+      if (!isCompatibleFileType(file.name)) {
         return new Response(JSON.stringify({
-          error: "File must be an OPML file"
+          error: "File must be an OPML, XML, or other compatible format"
         }), {
           status: 400,
           headers: { "Content-Type": "application/json" }
@@ -46,7 +63,9 @@ export const handler: Handlers = {
 
       // Generate unique ID and save file
       const uploadId = crypto.randomUUID();
-      const fileName = `${uploadId}.opml`;
+      // Preserve the original file extension
+      const fileExtension = file.name.substring(file.name.lastIndexOf('.'));
+      const fileName = `${uploadId}${fileExtension}`;
       const filePath = `feeds/${fileName}`;
 
       try {

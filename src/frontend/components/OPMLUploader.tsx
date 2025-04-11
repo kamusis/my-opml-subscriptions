@@ -16,8 +16,8 @@ export default function OPMLUploader(
   return (
     <div class="bg-white border border-slate-200 rounded-lg shadow-sm w-full max-w-2xl overflow-hidden">
       <div class="px-6 py-5 border-b border-slate-200">
-        <h2 class="text-lg font-medium text-slate-900">Upload OPML File</h2>
-        <p class="mt-1 text-sm text-slate-500">Import your subscriptions from an OPML file</p>
+        <h2 class="text-lg font-medium text-slate-900">Upload Subscription File</h2>
+        <p class="mt-1 text-sm text-slate-500">Import your subscriptions from an OPML, XML, or other compatible file</p>
       </div>
       
       <div class="p-6">
@@ -26,7 +26,7 @@ export default function OPMLUploader(
             class="block mb-2 text-sm font-medium text-slate-700"
             htmlFor="file_input"
           >
-            Select OPML File
+            Select Subscription File
           </label>
           
           <div class="flex items-center justify-center w-full">
@@ -39,12 +39,12 @@ export default function OPMLUploader(
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
                 <p class="mb-1 text-sm text-slate-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-                <p class="text-xs text-slate-500">OPML files only</p>
+                <p class="text-xs text-slate-500">OPML, XML, RSS, ATOM, or TXT files</p>
               </div>
               <input 
                 id="file_input" 
                 type="file" 
-                accept=".opml" 
+                accept=".opml,.xml,.rss,.atom,.txt" 
                 class="hidden" 
                 onChange={onFileChange} 
               />
@@ -75,7 +75,7 @@ export default function OPMLUploader(
               </svg>
               Uploading...
             </>
-          ) : "Upload OPML"}
+          ) : "Upload Feeds"}
         </button>
         
         {uploadStatus === "success" && (

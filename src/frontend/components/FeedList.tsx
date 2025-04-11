@@ -58,6 +58,12 @@ export default function FeedList({ feeds = [], isLoading = false }: FeedListProp
                       Status
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Last Update
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Updates (3mo)
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Last Validated
                     </th>
                   </tr>
@@ -129,8 +135,28 @@ export default function FeedList({ feeds = [], isLoading = false }: FeedListProp
                         <div class="flex items-center">
                           <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {feed.lastUpdate
+                            ? new Date(feed.lastUpdate).toLocaleString()
+                            : "Never"}
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <span 
+                            class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${feed.updatesInLast3Months > 10 ? 'bg-green-100 text-green-800' : feed.updatesInLast3Months > 3 ? 'bg-blue-100 text-blue-800' : feed.updatesInLast3Months > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-slate-100 text-slate-800'}`}
+                          >
+                            {feed.updatesInLast3Months}
+                          </span>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                        <div class="flex items-center">
+                          <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                          </svg>
                           {feed.lastValidated
                             ? new Date(feed.lastValidated).toLocaleString()
                             : "Never"}
