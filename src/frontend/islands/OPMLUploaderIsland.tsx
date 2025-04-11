@@ -16,9 +16,11 @@ export default function OPMLUploaderIsland() {
   const uploadStatus = useSignal<UploadStatus>("idle");
   const uploadErrorMessage = useSignal<string | null>(null);
   const feeds = useSignal<FeedRecord[]>([]);
+  const previousFeeds = useSignal<FeedRecord[]>([]);
   const areFeedsLoading = useSignal<boolean>(true);
   // Add a signal for tracking the last update timestamp to enable smooth transitions
   const lastUpdateTimestamp = useSignal<number>(Date.now());
+  // We'll keep the previousFeeds signal but remove the visual transition
 
   const handleFileChange = (event: JSX.TargetedEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
@@ -63,16 +65,32 @@ export default function OPMLUploaderIsland() {
     // Save current scroll position before fetching
     saveScrollPosition();
     
-    areFeedsLoading.value = true;
+    // We'll keep using previousFeeds for continuity, but without visual transitions
+    
+    // Only set loading to true if we don't have any previous data
+    // This prevents the component from showing a loading spinner when we already have data to display
+    if (feeds.value.length === 0) {
+      areFeedsLoading.value = true;
+    }
     
     console.log("Fetching feeds...");
     try {
-      const response = await fetch(`/api/feeds?limit=${limit}`); 
+      const response = await fetch(`/api/feeds?limit=${limit}`, {
+        headers: {
+          "Cache-Control": "no-cache"
+        }
+      }); 
       if (!response.ok) {
         throw new Error(`Failed to fetch feeds: ${response.statusText}`);
       }
       const result: ListFeedsResult = await response.json();
       
+      // Store current feeds as previous before updating
+      if (feeds.value.length > 0) {
+        previousFeeds.value = [...feeds.value];
+      }
+      
+      // Update with new data
       feeds.value = result.feeds;
       console.log("Feeds fetched:", result.feeds.length);
       
@@ -81,7 +99,10 @@ export default function OPMLUploaderIsland() {
     } catch (error) {
       console.error("Error fetching feeds:", error);
     } finally {
+      // End loading state
       areFeedsLoading.value = false;
+      
+      // No need for transition delay anymore
       
       // Restore scroll position after updating
       setTimeout(restoreScrollPosition, 0);
@@ -145,8 +166,8 @@ export default function OPMLUploaderIsland() {
       
       {/* Feed list section using the new FeedListControls component */}
       <FeedListControls 
-        feeds={feeds.value} 
-        isLoading={areFeedsLoading.value} 
+        feeds={areFeedsLoading.value && previousFeeds.value.length > 0 ? previousFeeds.value : feeds.value} 
+        isLoading={areFeedsLoading.value}
       />
     </div>
   );
