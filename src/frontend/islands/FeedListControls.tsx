@@ -1,5 +1,6 @@
 // src/frontend/islands/FeedListControls.tsx
 import { useState, useEffect, useMemo } from "preact/hooks";
+// We're using useState for selection state instead of signals
 import FeedList from "../components/FeedList.tsx";
 import type { FeedRecord, FeedStatus } from "../../backend/types/feed.types.ts";
 
@@ -18,6 +19,10 @@ export default function FeedListControls({ feeds, isLoading = false }: FeedListC
   const [statusFilter, setStatusFilter] = useState<FeedStatus | 'all'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Selection state
+  const [selectedFeeds, setSelectedFeeds] = useState<Set<string>>(new Set());
+  const [selectAllChecked, setSelectAllChecked] = useState<boolean>(false);
 
   // Sorting states
   const [sortField, setSortField] = useState<SortField>('url');
@@ -126,6 +131,34 @@ export default function FeedListControls({ feeds, isLoading = false }: FeedListC
     setSortField('url');
     setSortDirection('asc');
   };
+
+  // Selection handlers
+  const handleSelectFeed = (url: string, isSelected: boolean) => {
+    setSelectedFeeds(prev => {
+      const newSelection = new Set(prev);
+      if (isSelected) {
+        newSelection.add(url);
+      } else {
+        newSelection.delete(url);
+      }
+      return newSelection;
+    });
+  };
+
+  const handleSelectAll = (isSelected: boolean) => {
+    setSelectAllChecked(isSelected);
+    if (isSelected) {
+      // Select all currently filtered feeds
+      const newSelection = new Set<string>();
+      filteredAndSortedFeeds.forEach(feed => newSelection.add(feed.url));
+      setSelectedFeeds(newSelection);
+    } else {
+      // Deselect all
+      setSelectedFeeds(new Set());
+    }
+  };
+
+  // We're using checkboxes for selection instead of dropdown menu
 
   const handleRefresh = async () => {
     try {
@@ -321,6 +354,33 @@ export default function FeedListControls({ feeds, isLoading = false }: FeedListC
       )}
 
       <div class="feed-list-container">
+        {/* Selection summary - always visible when feeds are available */}
+        {feeds.length > 0 && (
+          <div class="mb-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md p-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <svg class="h-5 w-5 text-blue-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span class="font-medium">{selectedFeeds.size}</span>&nbsp;{selectedFeeds.size === 1 ? 'feed' : 'feeds'} selected
+              </div>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => selectedFeeds.size > 0 && alert('Export functionality will be implemented next')}
+                  disabled={selectedFeeds.size === 0}
+                  class={`inline-flex items-center px-3 py-1 border text-sm leading-5 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${selectedFeeds.size > 0 ? 'border-transparent text-white bg-blue-600 hover:bg-blue-700' : 'border-slate-300 text-slate-500 bg-slate-100 cursor-not-allowed'}`}
+                >
+                  <svg class={`-ml-0.5 mr-1.5 h-4 w-4 ${selectedFeeds.size > 0 ? 'text-white' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Export Selected
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <FeedList
           feeds={filteredAndSortedFeeds}
           isLoading={isLoading}
@@ -328,6 +388,10 @@ export default function FeedListControls({ feeds, isLoading = false }: FeedListC
           sortDirection={sortDirection}
           onSort={handleSort}
           getSortIcon={getSortIcon}
+          selectedFeeds={selectedFeeds}
+          onSelectFeed={handleSelectFeed}
+          onSelectAll={handleSelectAll}
+          selectAllChecked={selectAllChecked}
         />
       </div>
     </div>

@@ -12,6 +12,11 @@ interface FeedListProps {
   sortDirection?: SortDirection;
   onSort?: (field: SortField) => void;
   getSortIcon?: (field: SortField) => JSX.Element;
+  // Selection props
+  selectedFeeds?: Set<string>;
+  onSelectFeed?: (url: string, isSelected: boolean) => void;
+  onSelectAll?: (isSelected: boolean) => void;
+  selectAllChecked?: boolean;
 }
 
 export default function FeedList({
@@ -20,7 +25,12 @@ export default function FeedList({
   sortField: _sortField = 'url',
   sortDirection: _sortDirection = 'asc',
   onSort,
-  getSortIcon
+  getSortIcon,
+  // Selection props with defaults
+  selectedFeeds = new Set<string>(),
+  onSelectFeed = () => {},
+  onSelectAll = () => {},
+  selectAllChecked = false
 }: FeedListProps) {
   // Ensure feeds is always an array
   const feedsArray = Array.isArray(feeds) ? feeds : [];
@@ -109,6 +119,17 @@ export default function FeedList({
               <table class="w-full table-fixed divide-y divide-slate-200" style="min-width: 1000px">  {/* Set minimum width to ensure all columns are visible */}
                 <thead class="bg-slate-50">
                   <tr>
+                    {/* Select All Checkbox */}
+                    <th scope="col" class="px-4 py-3 w-[5%]">
+                      <div class="flex items-center justify-center">
+                        <input
+                          type="checkbox"
+                          class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
+                          checked={selectAllChecked}
+                          onChange={(e) => onSelectAll(e.currentTarget.checked)}
+                        />
+                      </div>
+                    </th>
                     <SortableHeader field="url" label="URL" />
                     <SortableHeader field="category" label="Category" />
                     <SortableHeader field="status" label="Status" />
@@ -120,6 +141,17 @@ export default function FeedList({
                 <tbody class="bg-white divide-y divide-slate-200">
                   {feedsArray.map((feed, index) => (
                     <tr key={feed.url} class={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                      {/* Row Selection Checkbox */}
+                      <td class="px-4 py-4">
+                        <div class="flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
+                            checked={selectedFeeds.has(feed.url)}
+                            onChange={(e) => onSelectFeed(feed.url, e.currentTarget.checked)}
+                          />
+                        </div>
+                      </td>
                       <td class="px-6 py-4 text-sm font-medium text-slate-900">
                         <div class="flex items-center">
                           <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

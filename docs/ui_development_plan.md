@@ -52,7 +52,7 @@ This document outlines the steps to build the user interface components for the 
 
 6.  **Feed List Enhancements (`islands/FeedListControls.tsx`)**:
     *   Add selection controls (checkboxes) for feeds.
-    *   Add multi-selection controls, eg. select all the feeds with a specific status, category, etc.
+    *   Add Preact Signals for selection state.
 7.  **Export Functionality (`islands/ExportButton.tsx`)**:
     *   Add an "Export OPML" button to the main page.
     *   Create an island to handle the export logic.
