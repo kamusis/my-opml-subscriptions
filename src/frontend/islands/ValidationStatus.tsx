@@ -31,23 +31,23 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
     try {
       validationState.value = 'starting';
       validationError.value = null;
-      
+
       // Trigger validation
       const response = await fetch('/api/validate', {
         method: 'POST',
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to start validation: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log('Validation started response:', data);
-      
+
       // The API returns validationId, not id
       validationId.value = data.validationId;
       validationState.value = 'polling';
-      
+
       // Start polling for status updates
       startPollingValidationStatus();
     } catch (error) {
@@ -62,25 +62,25 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
     if (pollingIntervalRef.current !== null) {
       clearInterval(pollingIntervalRef.current);
     }
-    
+
     // Poll every 1 second
     pollingIntervalRef.current = setInterval(async () => {
       if (!validationId.value) {
         clearInterval(pollingIntervalRef.current!);
         return;
       }
-      
+
       try {
         //console.log(`Polling validation status for ID: ${validationId.value}`);
         const response = await fetch(`/api/validation-status?validationId=${validationId.value}`);
-        
+
         if (!response.ok) {
           throw new Error(`Failed to get validation status: ${response.status} ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         //console.log('Validation status response:', data);
-        
+
         // Make sure we're dealing with a ValidationSession object
         if (data && typeof data === 'object') {
           // Update state based on validation status
@@ -88,7 +88,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             validationState.value = 'completed';
             clearInterval(pollingIntervalRef.current!);
             pollingIntervalRef.current = null;
-            
+
             // Notify parent component that validation is complete
             if (onValidationComplete) {
               onValidationComplete();
@@ -102,7 +102,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             validationState.value = 'processing';
             validationProgressDetails.value = data.progress || null;
             lastUpdateTimestamp.value = Date.now(); // Trigger re-render for animations
-            
+
             // Fetch updated feeds during validation to show real-time updates
             if (onValidationComplete) {
               onValidationComplete(); // This will trigger fetchFeeds() in the parent component
@@ -123,7 +123,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
   };
 
   return (
-    <div class="w-full max-w-4xl bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden transition-all duration-300 ease-in-out">
+    <div class="w-full bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden transition-all duration-300 ease-in-out min-h-[200px]">
       <div class="px-6 py-5 border-b border-slate-200">
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-medium text-slate-900">Feed Validation</h3>
@@ -159,7 +159,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
           </span>
         )}
       </div>
-      
+
       <div class="p-6">
         {/* Idle state with validation button */}
         {validationState.value === 'idle' && (
@@ -183,7 +183,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             </button>
           </div>
         )}
-        
+
         {/* Starting validation */}
         {validationState.value === 'starting' && (
           <div class="text-center py-4">
@@ -194,7 +194,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             <p class="text-blue-600 font-medium">Initiating validation process...</p>
           </div>
         )}
-        
+
         {/* Polling for updates */}
         {validationState.value === 'polling' && (
           <div class="text-center py-4">
@@ -205,7 +205,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             <p class="text-blue-600 font-medium">Connecting to validation service...</p>
           </div>
         )}
-        
+
         {/* Processing with progress bar */}
         {validationState.value === 'processing' && validationProgressDetails.value && (
           <div class="transition-all duration-300 ease-in-out" key={lastUpdateTimestamp.value}>
@@ -216,10 +216,10 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
               </span>
             </div>
             <div class="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-              <div 
+              <div
                 class="absolute left-0 top-0 h-full bg-blue-600 transition-all duration-500 ease-out"
-                style={{ 
-                  width: `${(validationProgressDetails.value.processedFeeds / validationProgressDetails.value.totalFeeds) * 100}%` 
+                style={{
+                  width: `${(validationProgressDetails.value.processedFeeds / validationProgressDetails.value.totalFeeds) * 100}%`
                 }}
               ></div>
             </div>
@@ -227,7 +227,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
               <span>{validationProgressDetails.value.processedFeeds} processed</span>
               <span>{validationProgressDetails.value.totalFeeds} total</span>
             </div>
-            
+
             {validationProgressDetails.value.currentFeed && (
               <div class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-md">
                 <div class="flex items-center">
@@ -241,7 +241,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             )}
           </div>
         )}
-        
+
         {/* Processing without details */}
         {validationState.value === 'processing' && !validationProgressDetails.value && (
           <div class="text-center py-4">
@@ -252,7 +252,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             <p class="text-blue-600 font-medium">Processing feeds...</p>
           </div>
         )}
-        
+
         {/* Completed state */}
         {validationState.value === 'completed' && (
           <div class="text-center">
@@ -277,7 +277,7 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             </button>
           </div>
         )}
-        
+
         {/* Error state */}
         {validationState.value === 'error' && (
           <div class="text-center">
