@@ -124,6 +124,30 @@ export default function FeedListControls({ feeds, isLoading = false }: FeedListC
     return result;
   }, [feeds, statusFilter, categoryFilter, searchQuery, sortField, sortDirection]);
 
+  // Update selection when filters change to only include visible feeds
+  useEffect(() => {
+    // Only run this effect if there are selected feeds
+    if (selectedFeeds.size > 0) {
+      // Get the set of URLs that are currently visible after filtering
+      const visibleFeedUrls = new Set(filteredAndSortedFeeds.map(feed => feed.url));
+
+      // Create a new selection that only includes feeds that are both selected and visible
+      const newSelection = new Set<string>();
+      selectedFeeds.forEach(url => {
+        if (visibleFeedUrls.has(url)) {
+          newSelection.add(url);
+        }
+      });
+
+      // Update the selection state if it has changed
+      if (newSelection.size !== selectedFeeds.size) {
+        setSelectedFeeds(newSelection);
+        // Update the selectAllChecked state based on whether all visible feeds are selected
+        setSelectAllChecked(newSelection.size === filteredAndSortedFeeds.length && filteredAndSortedFeeds.length > 0);
+      }
+    }
+  }, [statusFilter, categoryFilter, searchQuery, filteredAndSortedFeeds]);
+
   // Reset filters
   const handleResetFilters = () => {
     setStatusFilter('all');
@@ -151,6 +175,7 @@ export default function FeedListControls({ feeds, isLoading = false }: FeedListC
     if (isSelected) {
       // Select all currently filtered feeds
       const newSelection = new Set<string>();
+      // Only add URLs from the currently filtered and visible feeds
       filteredAndSortedFeeds.forEach(feed => newSelection.add(feed.url));
       setSelectedFeeds(newSelection);
     } else {
