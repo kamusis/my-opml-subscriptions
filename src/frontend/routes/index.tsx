@@ -1,6 +1,7 @@
 // src/frontend/routes/index.tsx
 import { Head } from "$fresh/runtime.ts";
 import OPMLUploaderIsland from "../islands/OPMLUploaderIsland.tsx";
+import FeedManagementIsland from "../islands/FeedManagementIsland.tsx";
 
 export default function Home() {
   return (
@@ -18,7 +19,7 @@ export default function Home() {
               <div class="flex items-center">
                 <div class="flex-shrink-0 flex items-center">
                   <svg class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 011 1" />
                   </svg>
                   <span class="ml-2 text-xl font-semibold text-slate-800">OPML Manager</span>
@@ -43,7 +44,10 @@ export default function Home() {
               <h1 class="text-2xl font-semibold text-slate-900">OPML Subscription Manager</h1>
               <p class="mt-1 text-sm text-slate-500">Upload, manage, and validate your feed subscriptions</p>
             </div>
-            <OPMLUploaderIsland />
+            <div class="space-y-8">
+              <OPMLUploaderIsland />
+              <FeedManagementIsland />
+            </div>
           </div>
         </main>
 
