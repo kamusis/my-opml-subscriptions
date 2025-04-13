@@ -142,11 +142,19 @@ export default function FeedListControls({ feeds, isLoading = false }: FeedListC
       // Update the selection state if it has changed
       if (newSelection.size !== selectedFeeds.size) {
         setSelectedFeeds(newSelection);
-        // Update the selectAllChecked state based on whether all visible feeds are selected
-        setSelectAllChecked(newSelection.size === filteredAndSortedFeeds.length && filteredAndSortedFeeds.length > 0);
+
+        // Extract condition into a named variable for better readability
+        const areAllVisibleFeedsSelected =
+          newSelection.size === filteredAndSortedFeeds.length &&
+          filteredAndSortedFeeds.length > 0;
+
+        // Update the selectAllChecked state
+        setSelectAllChecked(areAllVisibleFeedsSelected);
       }
     }
-  }, [statusFilter, categoryFilter, searchQuery, filteredAndSortedFeeds]);
+  // Only depend on the filter states, not on the derived filteredAndSortedFeeds
+  // This prevents potential infinite loops
+  }, [statusFilter, categoryFilter, searchQuery, feeds, selectedFeeds]);
 
   // Reset filters
   const handleResetFilters = () => {
@@ -158,28 +166,48 @@ export default function FeedListControls({ feeds, isLoading = false }: FeedListC
   };
 
   // Selection handlers
+  /**
+   * Handles individual feed selection/deselection
+   * @param url The URL of the feed to select/deselect
+   * @param isSelected Whether the feed should be selected
+   */
   const handleSelectFeed = (url: string, isSelected: boolean) => {
     setSelectedFeeds(prev => {
+      // Create a new Set from the previous selection to maintain immutability
       const newSelection = new Set(prev);
+
       if (isSelected) {
+        // Add the URL to the selection
         newSelection.add(url);
       } else {
+        // Remove the URL from the selection
         newSelection.delete(url);
       }
+
       return newSelection;
     });
   };
 
+  /**
+   * Handles the "Select All" checkbox state change
+   * @param isSelected Whether all feeds should be selected
+   */
   const handleSelectAll = (isSelected: boolean) => {
+    // Update the checkbox state
     setSelectAllChecked(isSelected);
+
     if (isSelected) {
-      // Select all currently filtered feeds
+      // Create a new Set to hold the selection
       const newSelection = new Set<string>();
+
       // Only add URLs from the currently filtered and visible feeds
+      // This ensures that only feeds matching the current filters are selected
       filteredAndSortedFeeds.forEach(feed => newSelection.add(feed.url));
+
+      // Update the selection state
       setSelectedFeeds(newSelection);
     } else {
-      // Deselect all
+      // Deselect all feeds by setting an empty selection
       setSelectedFeeds(new Set());
     }
   };
