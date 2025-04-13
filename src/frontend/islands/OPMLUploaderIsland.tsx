@@ -83,7 +83,7 @@ export default function OPMLUploaderIsland() {
       uploadStatus.value = "success";
       // Trigger a page reload to refresh all components
       setTimeout(() => {
-        window.location.reload();
+        globalThis.location.reload();
       }, 1000);
 
     } catch (error) {
