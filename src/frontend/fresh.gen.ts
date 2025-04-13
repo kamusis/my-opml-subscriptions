@@ -16,6 +16,7 @@ import * as $ws from "./routes/ws.ts";
 import * as $Counter from "./islands/Counter.tsx";
 import * as $ExportButton from "./islands/ExportButton.tsx";
 import * as $FeedListControls from "./islands/FeedListControls.tsx";
+import * as $FeedManagementIsland from "./islands/FeedManagementIsland.tsx";
 import * as $OPMLUploaderIsland from "./islands/OPMLUploaderIsland.tsx";
 import * as $ValidationStatus from "./islands/ValidationStatus.tsx";
 import type { Manifest } from "$fresh/server.ts";
@@ -38,6 +39,7 @@ const manifest = {
     "./islands/Counter.tsx": $Counter,
     "./islands/ExportButton.tsx": $ExportButton,
     "./islands/FeedListControls.tsx": $FeedListControls,
+    "./islands/FeedManagementIsland.tsx": $FeedManagementIsland,
     "./islands/OPMLUploaderIsland.tsx": $OPMLUploaderIsland,
     "./islands/ValidationStatus.tsx": $ValidationStatus,
   },

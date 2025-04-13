@@ -19,7 +19,7 @@ export const handler: Handlers = {
   async POST(req) {
     try {
       // Parse request body if any
-      let requestBody = {};
+      let requestBody: { opmlId?: string; feedUrls?: string[] } = {};
       try {
         if (req.headers.get("content-type")?.includes("application/json")) {
           requestBody = await req.json();
@@ -34,15 +34,25 @@ export const handler: Handlers = {
       const validationService = new ValidationServiceImpl(storage, mockWebSocketService);
 
       // Generate a unique validation ID
-      const opmlId = (requestBody as { opmlId?: string })?.opmlId || "default";
+      const opmlId = requestBody.opmlId || "default";
       const validationId = await validationService.startValidation(opmlId);
 
-      // Fetch all feeds from storage
-      const options: ListFeedsOptions = {
-        limit: 1000, // Set a reasonable limit
-      };
-      const feedsResult = await storage.listFeeds(options);
-      const feedUrls = feedsResult.feeds.map(feed => feed.url);
+      // Determine which feeds to validate
+      let feedUrls: string[] = [];
+
+      // If specific feed URLs were provided in the request, use those
+      if (requestBody.feedUrls && Array.isArray(requestBody.feedUrls) && requestBody.feedUrls.length > 0) {
+        feedUrls = requestBody.feedUrls;
+        logger.info(`Validating ${feedUrls.length} selected feeds`);
+      } else {
+        // Otherwise, fetch all feeds from storage
+        const options: ListFeedsOptions = {
+          limit: 1000, // Set a reasonable limit
+        };
+        const feedsResult = await storage.listFeeds(options);
+        feedUrls = feedsResult.feeds.map(feed => feed.url);
+        logger.info(`Validating all ${feedUrls.length} feeds`);
+      }
 
       if (feedUrls.length === 0) {
         return new Response(JSON.stringify({
@@ -58,7 +68,7 @@ export const handler: Handlers = {
       (async () => {
         try {
           logger.info(`Starting validation process for ${feedUrls.length} feeds`);
-          
+
           // Start the validation process which will update progress via KV storage
           // and return detailed results for each feed
           // Feed records are now updated during individual validation in validateBatchFeeds
@@ -113,7 +123,7 @@ export const handler: Handlers = {
 
       // Get validation status
       const status = await validationService.getValidationStatus(validationId);
-      
+
       if (!status) {
         return new Response(JSON.stringify({
           error: "Validation session not found"

@@ -3,12 +3,16 @@ import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import type { ValidationProgress } from "../../backend/types/validation.types.ts";
 
+import type { FeedRecord } from "../../backend/types/feed.types.ts";
+
 interface ValidationStatusProps {
   feedCount: number;
+  selectedFeeds?: Set<string>;
+  allFeeds?: FeedRecord[];
   onValidationComplete?: () => void;
 }
 
-export default function ValidationStatus({ feedCount, onValidationComplete }: ValidationStatusProps) {
+export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, onValidationComplete }: ValidationStatusProps) {
   // Validation state management
   const validationState = useSignal<'idle' | 'starting' | 'polling' | 'processing' | 'completed' | 'error'>('idle');
   const validationId = useSignal<string | null>(null);
@@ -27,14 +31,34 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
   }, []);
 
   // Handle validation process
-  const handleValidate = async () => {
+  const handleValidate = async (validateSelected: boolean = false) => {
     try {
       validationState.value = 'starting';
       validationError.value = null;
 
+      // Prepare request body
+      const requestBody: { feedUrls?: string[] } = {};
+
+      // If validating selected feeds and we have selections
+      if (validateSelected && selectedFeeds && selectedFeeds.size > 0 && allFeeds) {
+        // Get the selected feed URLs
+        const selectedFeedUrls = Array.from(selectedFeeds);
+
+        // Only proceed if we have feeds to validate
+        if (selectedFeedUrls.length === 0) {
+          throw new Error('No feeds selected for validation');
+        }
+
+        requestBody.feedUrls = selectedFeedUrls;
+      }
+
       // Trigger validation
       const response = await fetch('/api/validate', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -172,14 +196,22 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             <p class="text-slate-600 mb-4">Validate your feeds to check their status and availability.</p>
             <button
               type="button"
-              onClick={handleValidate}
+              onClick={() => {
+                // If there are selected feeds, validate only those
+                // Otherwise, validate all feeds
+                const validateSelected = selectedFeeds && selectedFeeds.size > 0 && selectedFeeds.size < feedCount;
+                handleValidate(validateSelected);
+              }}
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors duration-200"
               disabled={feedCount === 0}
             >
               <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              Validate All Feeds ({feedCount})
+              {selectedFeeds && selectedFeeds.size > 0 && selectedFeeds.size < feedCount
+                ? `Validate Selected (${selectedFeeds.size})`
+                : `Validate All Feeds (${feedCount})`
+              }
             </button>
           </div>
         )}
@@ -267,13 +299,22 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             <p class="text-slate-600 mb-4">All feeds have been successfully validated.</p>
             <button
               type="button"
-              onClick={handleValidate}
+              onClick={() => {
+                // If there are selected feeds, validate only those
+                // Otherwise, validate all feeds
+                const validateSelected = selectedFeeds && selectedFeeds.size > 0 && selectedFeeds.size < feedCount;
+                handleValidate(validateSelected);
+              }}
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              disabled={feedCount === 0}
             >
               <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              Validate Again
+              {selectedFeeds && selectedFeeds.size > 0 && selectedFeeds.size < feedCount
+                ? `Validate Selected (${selectedFeeds.size})`
+                : `Validate All Feeds (${feedCount})`
+              }
             </button>
           </div>
         )}
@@ -292,13 +333,22 @@ export default function ValidationStatus({ feedCount, onValidationComplete }: Va
             <p class="text-red-600 mb-4">{validationError.value}</p>
             <button
               type="button"
-              onClick={handleValidate}
+              onClick={() => {
+                // If there are selected feeds, validate only those
+                // Otherwise, validate all feeds
+                const validateSelected = selectedFeeds && selectedFeeds.size > 0 && selectedFeeds.size < feedCount;
+                handleValidate(validateSelected);
+              }}
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              disabled={feedCount === 0}
             >
               <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              Try Again
+              {selectedFeeds && selectedFeeds.size > 0 && selectedFeeds.size < feedCount
+                ? `Validate Selected (${selectedFeeds.size})`
+                : `Validate All Feeds (${feedCount})`
+              }
             </button>
           </div>
         )}
