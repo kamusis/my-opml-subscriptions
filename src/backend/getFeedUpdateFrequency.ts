@@ -2,7 +2,7 @@
  * RSS/Atom feed parser module that checks feed health and update frequency
  */
 import { parseFeed } from "@mikaelporttila/rss";
-import { FeedEntry } from "./types/feed.types.ts";
+import { FeedEntry, FeedStatus } from "./types/feed.types.ts";
 import { createLogger } from "../utils/logger.ts";
 
 const logger = createLogger("feedUpdateFrequency");
@@ -19,10 +19,10 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
     if (!response.ok) {
       const error = `HTTP ${response.status} ${response.statusText}`;
       logger.error(`Feed was marked as compatible but HTTP request failed for ${feedUrl}: ${error}`);
-      return { 
-        url: feedUrl, 
-        status: "incompatible", 
-        lastUpdate: null, 
+      return {
+        url: feedUrl,
+        status: "incompatible",
+        lastUpdate: null,
         updatesInLast3Months: 0,
         incompatibleReason: `Feed previously accessible but now returns ${error}`
       };
@@ -32,18 +32,18 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
     const contentType = response.headers.get("content-type");
     // Extract base content type without charset
     const baseContentType = contentType?.split(';')[0].trim();
-    
-    if (!baseContentType || 
-        (baseContentType !== "application/rss+xml" && 
+
+    if (!baseContentType ||
+        (baseContentType !== "application/rss+xml" &&
          baseContentType !== "application/atom+xml" &&
          baseContentType !== "text/xml" &&
          baseContentType !== "application/xml")) {
       const error = `Unexpected content type: ${contentType}`;
       logger.error(`Feed was marked as compatible but returned invalid content type for ${feedUrl}: ${error}`);
-      return { 
-        url: feedUrl, 
-        status: "incompatible", 
-        lastUpdate: null, 
+      return {
+        url: feedUrl,
+        status: "incompatible",
+        lastUpdate: null,
         updatesInLast3Months: 0,
         incompatibleReason: error
       };
@@ -76,7 +76,7 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
 
     // Initialize counters with default values
     let updatesInLast3Months = 0;
-    let lastUpdate = new Date(twoYearsAgo);
+    let lastUpdate: Date | null = null;
     let validDatesFound = false;
 
     // Analyze each entry's timestamp
@@ -85,7 +85,7 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
       if (!isNaN(publishedDate.getTime())) {
         validDatesFound = true;
         // Update the most recent entry date if newer
-        if (!lastUpdate || publishedDate > lastUpdate) {
+        if (lastUpdate === null || publishedDate > lastUpdate) {
           lastUpdate = publishedDate;
         }
         // Count entries in the last 3 months
@@ -110,14 +110,18 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
 
     // Determine feed status based on last update
     // Active if updated within last 2 years, otherwise inactive
-    const status = lastUpdate > twoYearsAgo ? "active" : "inactive";
+    // If no valid dates found but we got this far, we'll mark as inactive
+    let status: FeedStatus = "inactive";
+    if (lastUpdate !== null) {
+      status = (lastUpdate as Date) > twoYearsAgo ? "active" : "inactive";
+    }
     logger.debug(`Feed ${feedUrl} status: ${status}, last update: ${lastUpdate}, updates in last 3 months: ${updatesInLast3Months}`);
 
-    return { 
-      url: feedUrl, 
-      status, 
-      lastUpdate: lastUpdate ? lastUpdate.toISOString() : null, 
-      updatesInLast3Months 
+    return {
+      url: feedUrl,
+      status,
+      lastUpdate: lastUpdate !== null ? (lastUpdate as Date).toISOString() : null,
+      updatesInLast3Months
     };
   } catch (error) {
     // Handle any errors during feed processing with detailed logging
@@ -129,10 +133,10 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
       logger.error(`Stack trace: ${error.stack}`);
     }
 
-    return { 
-      url: feedUrl, 
-      status: "incompatible", 
-      lastUpdate: null, 
+    return {
+      url: feedUrl,
+      status: "incompatible",
+      lastUpdate: null,
       updatesInLast3Months: 0,
       incompatibleReason: `Error checking update frequency: ${errorMessage}`
     };
