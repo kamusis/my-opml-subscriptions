@@ -14,6 +14,7 @@ import * as $greet_name_ from "./routes/greet/[name].tsx";
 import * as $index from "./routes/index.tsx";
 import * as $ws from "./routes/ws.ts";
 import * as $Counter from "./islands/Counter.tsx";
+import * as $ExportButton from "./islands/ExportButton.tsx";
 import * as $FeedListControls from "./islands/FeedListControls.tsx";
 import * as $OPMLUploaderIsland from "./islands/OPMLUploaderIsland.tsx";
 import * as $ValidationStatus from "./islands/ValidationStatus.tsx";
@@ -35,6 +36,7 @@ const manifest = {
   },
   islands: {
     "./islands/Counter.tsx": $Counter,
+    "./islands/ExportButton.tsx": $ExportButton,
     "./islands/FeedListControls.tsx": $FeedListControls,
     "./islands/OPMLUploaderIsland.tsx": $OPMLUploaderIsland,
     "./islands/ValidationStatus.tsx": $ValidationStatus,

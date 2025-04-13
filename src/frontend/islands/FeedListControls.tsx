@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from "preact/hooks";
 // We're using useState for selection state instead of signals
 import FeedList from "../components/FeedList.tsx";
+import ExportButton from "./ExportButton.tsx";
 import type { FeedRecord, FeedStatus } from "../../backend/types/feed.types.ts";
 
 interface FeedListControlsProps {
@@ -364,19 +365,7 @@ export default function FeedListControls({ feeds, isLoading = false }: FeedListC
                 </svg>
                 <span class="font-medium">{selectedFeeds.size}</span>&nbsp;{selectedFeeds.size === 1 ? 'feed' : 'feeds'} selected
               </div>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => selectedFeeds.size > 0 && alert('Export functionality will be implemented next')}
-                  disabled={selectedFeeds.size === 0}
-                  class={`inline-flex items-center px-3 py-1 border text-sm leading-5 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${selectedFeeds.size > 0 ? 'border-transparent text-white bg-blue-600 hover:bg-blue-700' : 'border-slate-300 text-slate-500 bg-slate-100 cursor-not-allowed'}`}
-                >
-                  <svg class={`-ml-0.5 mr-1.5 h-4 w-4 ${selectedFeeds.size > 0 ? 'text-white' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Export Selected
-                </button>
-              </div>
+              <ExportButton selectedFeeds={selectedFeeds} allFeeds={feeds} />
             </div>
           </div>
         )}
