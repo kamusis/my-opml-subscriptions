@@ -12,7 +12,9 @@ import type { FeedRecord } from "../../backend/types/feed.types.ts";
 export default function FeedManagementIsland() {
   // Feed data state
   const feeds = useSignal<FeedRecord[]>([]);
+  const previousFeeds = useSignal<FeedRecord[]>([]);
   const isLoading = useSignal<boolean>(true);
+  const lastUpdateTimestamp = useSignal<number>(Date.now());
 
   // Selection state
   const selectedFeeds = useSignal<Set<string>>(new Set<string>());
@@ -20,7 +22,11 @@ export default function FeedManagementIsland() {
   // Fetch feeds from the API
   const fetchFeeds = async () => {
     try {
-      isLoading.value = true;
+      // Only set loading to true if we don't have any previous data
+      // This prevents the component from showing a loading spinner when we already have data to display
+      if (feeds.value.length === 0) {
+        isLoading.value = true;
+      }
 
       // Set a high limit to fetch all feeds since we don't have pagination yet
       const response = await fetch("/api/feeds?limit=1000");
@@ -28,9 +34,17 @@ export default function FeedManagementIsland() {
         throw new Error(`Failed to fetch feeds: ${response.status}`);
       }
 
+      // Store current feeds as previous before updating
+      if (feeds.value.length > 0) {
+        previousFeeds.value = [...feeds.value];
+      }
+
       const data = await response.json();
       feeds.value = data.feeds || [];
       console.log(`Fetched ${data.feeds?.length || 0} feeds`);
+
+      // Update timestamp for animation triggers
+      lastUpdateTimestamp.value = Date.now();
     } catch (error) {
       console.error("Error fetching feeds:", error);
     } finally {
@@ -55,7 +69,7 @@ export default function FeedManagementIsland() {
 
       {/* Feed List Controls component */}
       <FeedListControls
-        feeds={feeds.value}
+        feeds={isLoading.value && previousFeeds.value.length > 0 ? previousFeeds.value : feeds.value}
         isLoading={isLoading.value}
         onSelectionChange={(newSelection) => selectedFeeds.value = newSelection}
       />
