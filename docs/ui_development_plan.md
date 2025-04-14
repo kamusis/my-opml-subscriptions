@@ -67,9 +67,9 @@ This document outlines the steps to build the user interface components for the 
 
 ## Future Enhancements (Post-Core Implementation)
 
-*   **Feed Details View:** A route (`routes/feeds/[url].tsx`) to show detailed info and validation history for a single feed (requires new API endpoint `GET /api/feeds/:feedUrl`).
-*   **Batch Operations:** Implement feed selection (checkboxes) in the list and buttons for batch revalidation or deletion (requires new API endpoints like `POST /api/feeds/revalidate` or `POST /api/feeds/batch`).
-*   **Dashboard View:** Create a dedicated dashboard (`routes/dashboard.tsx`) integrating statistics components (requires `GET /api/categories/stats`, `GET /api/incompatible/reasons` API endpoints).
 *   **Drag & Drop Upload:** Enhance the `OPMLUploader` component.
+*   **Feed Details View:** A route (`routes/feeds/[url].tsx`) to show detailed info and validation history for a single feed (requires new API endpoint `GET /api/feeds/:feedUrl`).
+*   **Batch Operations:** Implement feed selection (checkboxes) in the list and buttons for batch deletion (requires new API endpoints like `POST /api/feeds/delete`).
+*   **Dashboard View:** Create a dedicated dashboard (`routes/dashboard.tsx`) integrating statistics components (requires `GET /api/categories/stats`, `GET /api/incompatible/reasons` API endpoints).
 
 This plan provides a structured approach to building the UI incrementally. Each phase builds upon the previous one, focusing on delivering core functionality first.
