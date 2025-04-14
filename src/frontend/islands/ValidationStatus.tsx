@@ -147,28 +147,28 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
   };
 
   return (
-    <div class="w-full bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden transition-all duration-300 ease-in-out min-h-[200px]">
-      <div class="px-6 py-5 border-b border-slate-200">
+    <div class="w-full bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-fresh-teal/30 overflow-hidden transition-all duration-300 ease-in-out min-h-[200px]">
+      <div class="px-6 py-5 border-b border-fresh-teal/20">
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-medium text-slate-900">Feed Validation</h3>
           <p class="text-sm text-slate-500">Check and update feed status</p>
         </div>
         {validationState.value === 'idle' && (
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white text-slate-800 border border-fresh-teal/20">
             Ready
           </span>
         )}
         {validationState.value === 'processing' && (
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-blue-400 animate-pulse" fill="currentColor" viewBox="0 0 8 8">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-fresh-mint/30 text-slate-800">
+            <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-fresh-yellow animate-pulse" fill="currentColor" viewBox="0 0 8 8">
               <circle cx="4" cy="4" r="3" />
             </svg>
             Processing
           </span>
         )}
         {validationState.value === 'completed' && (
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-fresh-mint/40 text-slate-800">
+            <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-fresh-teal" fill="currentColor" viewBox="0 0 8 8">
               <circle cx="4" cy="4" r="3" />
             </svg>
             Complete
@@ -189,7 +189,7 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
         {validationState.value === 'idle' && (
           <div class="text-center">
             <div class="mb-4 flex justify-center">
-              <svg class="h-12 w-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg class="h-12 w-12 text-fresh-emerald" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
@@ -202,7 +202,7 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
                 const validateSelected = selectedFeeds && selectedFeeds.size > 0 && selectedFeeds.size < feedCount;
                 handleValidate(validateSelected);
               }}
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors duration-200"
+              class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-slate-800 bg-fresh-yellow hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fresh-yellow disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors duration-200"
               disabled={feedCount === 0}
             >
               <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -219,22 +219,22 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
         {/* Starting validation */}
         {validationState.value === 'starting' && (
           <div class="text-center py-4">
-            <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg class="animate-spin h-8 w-8 text-fresh-yellow mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p class="text-blue-600 font-medium">Initiating validation process...</p>
+            <p class="text-slate-700 font-medium">Initiating validation process...</p>
           </div>
         )}
 
         {/* Polling for updates */}
         {validationState.value === 'polling' && (
           <div class="text-center py-4">
-            <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg class="animate-spin h-8 w-8 text-fresh-yellow mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p class="text-blue-600 font-medium">Connecting to validation service...</p>
+            <p class="text-fresh-yellow font-medium">Connecting to validation service...</p>
           </div>
         )}
 
@@ -247,9 +247,9 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
                 {Math.round((validationProgressDetails.value.processedFeeds / validationProgressDetails.value.totalFeeds) * 100)}%
               </span>
             </div>
-            <div class="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div class="relative w-full h-2 bg-fresh-teal/30 rounded-full overflow-hidden">
               <div
-                class="absolute left-0 top-0 h-full bg-blue-600 transition-all duration-500 ease-out"
+                class="absolute left-0 top-0 h-full bg-fresh-yellow transition-all duration-500"
                 style={{
                   width: `${(validationProgressDetails.value.processedFeeds / validationProgressDetails.value.totalFeeds) * 100}%`
                 }}
@@ -261,7 +261,7 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
             </div>
 
             {validationProgressDetails.value.currentFeed && (
-              <div class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-md">
+              <div class="mt-4 p-4 bg-fresh-mint/20 border border-fresh-teal/20 rounded-md">
                 <div class="flex items-center">
                   <svg class="h-4 w-4 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -277,11 +277,11 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
         {/* Processing without details */}
         {validationState.value === 'processing' && !validationProgressDetails.value && (
           <div class="text-center py-4">
-            <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg class="animate-spin h-8 w-8 text-fresh-yellow mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p class="text-blue-600 font-medium">Processing feeds...</p>
+            <p class="text-slate-700 font-medium">Processing feeds...</p>
           </div>
         )}
 
@@ -289,8 +289,8 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
         {validationState.value === 'completed' && (
           <div class="text-center">
             <div class="mb-4 flex justify-center">
-              <div class="rounded-full bg-green-100 p-3">
-                <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <div class="rounded-full bg-fresh-mint/30 p-3">
+                <svg class="h-6 w-6 text-fresh-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
@@ -305,7 +305,7 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
                 const validateSelected = selectedFeeds && selectedFeeds.size > 0 && selectedFeeds.size < feedCount;
                 handleValidate(validateSelected);
               }}
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-slate-800 bg-fresh-yellow hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fresh-yellow"
               disabled={feedCount === 0}
             >
               <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -339,7 +339,7 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
                 const validateSelected = selectedFeeds && selectedFeeds.size > 0 && selectedFeeds.size < feedCount;
                 handleValidate(validateSelected);
               }}
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-slate-800 bg-fresh-yellow hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fresh-yellow"
               disabled={feedCount === 0}
             >
               <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

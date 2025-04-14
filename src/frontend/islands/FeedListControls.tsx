@@ -339,7 +339,7 @@ export default function FeedListControls({ feeds, isLoading = false, onSelection
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.currentTarget.value)}
                     placeholder="Search by URL or category"
-                    class="block w-full rounded-md border-slate-300 pl-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    class="block w-full rounded-md border-fresh-teal/30 pl-10 focus:border-fresh-yellow focus:ring-fresh-yellow sm:text-sm"
                   />
                 </div>
               </div>
@@ -355,17 +355,17 @@ export default function FeedListControls({ feeds, isLoading = false, onSelection
               <div class="flex items-center space-x-2">
                 <span>Active filters:</span>
                 {statusFilter !== 'all' && (
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-fresh-mint/30 text-slate-700">
                     Status: {statusFilter}
                   </span>
                 )}
                 {categoryFilter !== 'all' && (
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-fresh-mint/30 text-slate-700">
                     Category: {categoryFilter}
                   </span>
                 )}
                 {searchQuery && (
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-fresh-mint/30 text-slate-700">
                     Search: {searchQuery}
                   </span>
                 )}
@@ -382,7 +382,7 @@ export default function FeedListControls({ feeds, isLoading = false, onSelection
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3 max-w-[70%]">
                 <div class="flex items-center flex-shrink-0">
-                  <svg class="h-5 w-5 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="h-5 w-5 text-fresh-emerald mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                   <span class="font-medium text-slate-800">{selectedFeeds.size}</span>&nbsp;<span class="text-slate-600">{selectedFeeds.size === 1 ? 'feed' : 'feeds'} selected</span>

@@ -37,7 +37,7 @@ export default function FeedList({
   // Use an absolute positioned loading indicator that doesn't cause layout shifts
   const loadingIndicator = isLoading ? (
     <div class="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10 transition-opacity duration-300 ease-in-out">
-      <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+      <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-fresh-yellow"></div>
     </div>
   ) : null;
 
@@ -124,7 +124,7 @@ export default function FeedList({
                       <div class="flex items-center justify-center">
                         <input
                           type="checkbox"
-                          class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
+                          class="h-4 w-4 text-fresh-emerald focus:ring-fresh-emerald border-slate-300 rounded"
                           checked={selectAllChecked}
                           onChange={(e) => onSelectAll(e.currentTarget.checked)}
                         />
@@ -146,7 +146,7 @@ export default function FeedList({
                         <div class="flex items-center justify-center">
                           <input
                             type="checkbox"
-                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
+                            class="h-4 w-4 text-fresh-emerald focus:ring-fresh-emerald border-slate-300 rounded"
                             checked={selectedFeeds.has(feed.url)}
                             onChange={(e) => onSelectFeed(feed.url, e.currentTarget.checked)}
                           />
@@ -160,7 +160,7 @@ export default function FeedList({
                           </svg>
                           <a
                             href="#"
-                            class="text-blue-600 hover:text-blue-900 block overflow-hidden text-ellipsis"
+                            class="text-fresh-emerald hover:text-fresh-turquoiseDeep transition-colors duration-200 block overflow-hidden text-ellipsis"
                             title={feed.url}
                             onClick={(e) => {
                               e.preventDefault();
