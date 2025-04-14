@@ -2,7 +2,7 @@
 
 A Deno-based tool for validating and analyzing OPML feed subscriptions. This tool helps you clean up your RSS feed subscriptions by identifying dead feeds, inactive feeds, incompatible feeds, and sorting active feeds based on their update frequency.
 
-## Features
+## Backend Features
 
 - **Feed Validation**: Checks each feed's accessibility, compatibility, and update status
 - **Feed Classification**:
@@ -15,7 +15,7 @@ A Deno-based tool for validating and analyzing OPML feed subscriptions. This too
 - **Statistical Analysis**: Generates detailed statistics in markdown format
 - **Multiple Output Formats**: Generates separate OPML files for active, inactive, dead, and incompatible feeds
 
-## Prerequisites
+## Prerequisites (Backend)
 
 - [Deno](https://deno.land/) 2.x or higher
 - macOS, Linux, or Windows
@@ -28,18 +28,18 @@ git clone https://github.com/yourusername/my-opml-subscriptions.git
 cd my-opml-subscriptions
 ```
 
-## Usage
+## Pure Backend Usage (without Web UI)
 
 1. Place your OPML file in the `feeds` directory
 
 2. Run the validator:
 ```bash
-deno run --allow-read --allow-write --allow-net src/main.ts feeds/your-file.opml
+deno run --allow-read --allow-write --allow-net src/backend/main.ts feeds/your-file.opml
 ```
 
 Or use the predefined task in deno.json:
 ```bash
-deno task start feeds/your-file.opml
+deno task backend:start feeds/your-file.opml
 ```
 
 ### Output Files
@@ -51,22 +51,22 @@ The tool generates several files in the `feeds` directory:
 - `*-incompatible.opml`: Contains feeds with format issues
 - `processing_statistics_*.md`: Statistical analysis report with detailed breakdown of feed statuses and error categories
 
-## Project Structure
+## Project Structure (Backend main modules only)
 
 ```
 ├── design/
-│   └── design.md          # Project design documentation
-├── feeds/                 # Input and output OPML files
-├── src/
-│   ├── main.ts           # Main entry point
-│   ├── parseOPML.ts      # OPML parsing logic
-│   ├── checkFeedAccessibility.ts  # Feed accessibility checker
-│   ├── checkFeedCompatibility.ts  # Feed format compatibility checker
-│   ├── getFeedUpdateFrequency.ts  # Feed update frequency analyzer
-│   ├── generateNewOPML.ts # OPML generation logic
-│   └── writeStatistics.ts # Statistics generation
-├── deno.json             # Deno configuration
-└── README.md             # This file
+│   └── design-backend.md           # Project design documentation
+├── feeds/                          # Input and output OPML files
+├── src/backend/                    # Backend source code
+│   ├── main.ts                     # Main entry point
+│   ├── parseOPML.ts                # OPML parsing logic
+│   ├── checkFeedAccessibility.ts   # Feed accessibility checker
+│   ├── checkFeedCompatibility.ts   # Feed format compatibility checker
+│   ├── getFeedUpdateFrequency.ts   # Feed update frequency analyzer
+│   ├── generateNewOPML.ts          # OPML generation logic
+│   └── writeStatistics.ts          # Statistics generation
+├── deno.json                       # Deno configuration
+└── README.md                       # This file
 ```
 
 ## Statistics Generated
