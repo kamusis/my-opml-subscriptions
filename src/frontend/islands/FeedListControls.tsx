@@ -125,37 +125,30 @@ export default function FeedListControls({ feeds, isLoading = false, onSelection
     return result;
   }, [feeds, statusFilter, categoryFilter, searchQuery, sortField, sortDirection]);
 
-  // Update selection when filters change to only include visible feeds
+  // Update selection and selectAll checkbox state when filters change
   useEffect(() => {
-    // Only run this effect if there are selected feeds
-    if (selectedFeeds.size > 0) {
-      // Get the set of URLs that are currently visible after filtering
-      const visibleFeedUrls = new Set(filteredAndSortedFeeds.map(feed => feed.url));
+    // Get the set of URLs that are currently visible after filtering
+    const visibleFeedUrls = new Set(filteredAndSortedFeeds.map(feed => feed.url));
 
-      // Create a new selection that only includes feeds that are both selected and visible
-      const newSelection = new Set<string>();
-      selectedFeeds.forEach(url => {
-        if (visibleFeedUrls.has(url)) {
-          newSelection.add(url);
-        }
-      });
-
-      // Update the selection state if it has changed
-      if (newSelection.size !== selectedFeeds.size) {
-        setSelectedFeeds(newSelection);
-
-        // Extract condition into a named variable for better readability
-        const areAllVisibleFeedsSelected =
-          newSelection.size === filteredAndSortedFeeds.length &&
-          filteredAndSortedFeeds.length > 0;
-
-        // Update the selectAllChecked state
-        setSelectAllChecked(areAllVisibleFeedsSelected);
+    // Count how many visible feeds are selected
+    let visibleSelectedCount = 0;
+    selectedFeeds.forEach(url => {
+      if (visibleFeedUrls.has(url)) {
+        visibleSelectedCount++;
       }
-    }
-  // Only depend on the filter states, not on the derived filteredAndSortedFeeds
+    });
+
+    // Update the selectAllChecked state based on whether all visible feeds are selected
+    const areAllVisibleFeedsSelected =
+      visibleSelectedCount === filteredAndSortedFeeds.length &&
+      filteredAndSortedFeeds.length > 0;
+
+    setSelectAllChecked(areAllVisibleFeedsSelected);
+
+    // We don't modify the selectedFeeds here to preserve selections when filters change
+  // Only depend on the filter states and the current selection
   // This prevents potential infinite loops
-  }, [statusFilter, categoryFilter, searchQuery, feeds, selectedFeeds]);
+  }, [statusFilter, categoryFilter, searchQuery, feeds, selectedFeeds, filteredAndSortedFeeds]);
 
   // Notify parent component when selection changes
   useEffect(() => {
@@ -205,18 +198,24 @@ export default function FeedListControls({ feeds, isLoading = false, onSelection
     setSelectAllChecked(isSelected);
 
     if (isSelected) {
-      // Create a new Set to hold the selection
-      const newSelection = new Set<string>();
+      // Create a new Set from the existing selection to maintain previous selections
+      const newSelection = new Set(selectedFeeds);
 
-      // Only add URLs from the currently filtered and visible feeds
-      // This ensures that only feeds matching the current filters are selected
+      // Add all currently visible feeds to the selection
       filteredAndSortedFeeds.forEach(feed => newSelection.add(feed.url));
 
       // Update the selection state
       setSelectedFeeds(newSelection);
     } else {
-      // Deselect all feeds by setting an empty selection
-      setSelectedFeeds(new Set());
+      // Create a new Set from the existing selection
+      const newSelection = new Set(selectedFeeds);
+
+      // Remove only the currently visible feeds from the selection
+      // This preserves selections that aren't currently visible
+      filteredAndSortedFeeds.forEach(feed => newSelection.delete(feed.url));
+
+      // Update the selection state
+      setSelectedFeeds(newSelection);
     }
   };
 
@@ -379,14 +378,26 @@ export default function FeedListControls({ feeds, isLoading = false, onSelection
       <div class="feed-list-container">
         {/* Selection summary - always visible when feeds are available */}
         {feeds.length > 0 && (
-          <div class="mb-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md p-4">
+          <div class="mb-4 bg-white border border-slate-200 shadow-sm rounded-md p-4">
             <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <svg class="h-5 w-5 text-blue-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <span class="font-medium">{selectedFeeds.size}</span>&nbsp;{selectedFeeds.size === 1 ? 'feed' : 'feeds'} selected
+              <div class="flex items-center space-x-3 max-w-[70%]">
+                <div class="flex items-center flex-shrink-0">
+                  <svg class="h-5 w-5 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <span class="font-medium text-slate-800">{selectedFeeds.size}</span>&nbsp;<span class="text-slate-600">{selectedFeeds.size === 1 ? 'feed' : 'feeds'} selected</span>
+                </div>
+
+                {selectedFeeds.size > 0 && (statusFilter !== 'all' || categoryFilter !== 'all' || searchQuery) && (
+                  <div class="text-xs text-slate-500 flex items-center overflow-hidden">
+                    <svg class="h-3.5 w-3.5 text-slate-400 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="truncate">Selections are preserved across filter changes.</span>
+                  </div>
+                )}
               </div>
+
               <ExportButton selectedFeeds={selectedFeeds} allFeeds={feeds} />
             </div>
           </div>
