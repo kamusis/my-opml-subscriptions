@@ -1,8 +1,10 @@
 // src/frontend/components/OPMLUploader.tsx
 import { JSX } from "preact";
+import { useState, useRef } from "preact/hooks";
 
 interface OPMLUploaderProps {
   onFileChange: (event: JSX.TargetedEvent<HTMLInputElement, Event>) => void;
+  onFileDrop: (files: FileList | null) => void;
   onUpload: () => void;
   uploadStatus: string;
   errorMessage: string | null;
@@ -10,9 +12,48 @@ interface OPMLUploaderProps {
 }
 
 export default function OPMLUploader(
-  { onFileChange, onUpload, uploadStatus, errorMessage, selectedFileName }:
+  { onFileChange, onFileDrop, onUpload, uploadStatus, errorMessage, selectedFileName }:
     OPMLUploaderProps,
 ) {
+  // State for drag and drop UI
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Use a counter to track drag enter/leave events to handle child elements
+  const dragCounter = useRef(0);
+
+  const handleDragEnter = (e: JSX.TargetedDragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragOver = (e: JSX.TargetedDragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e: JSX.TargetedDragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (e: JSX.TargetedDragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      onFileDrop(e.dataTransfer.files);
+    }
+  };
   return (
     <div class="bg-white border border-slate-200 rounded-lg shadow-sm w-full overflow-hidden">
       <div class="px-6 py-5 border-b border-slate-200">
@@ -32,13 +73,24 @@ export default function OPMLUploader(
           <div class="flex items-center justify-center w-full">
             <label
               htmlFor="file_input"
-              class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-200 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors duration-200"
+              class={`relative flex flex-col items-center justify-center w-full h-32 border-2 ${isDragging ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-slate-50'} border-dashed rounded-lg cursor-pointer hover:bg-slate-100 transition-colors duration-200`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onDragEnter={handleDragEnter}
             >
               <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                <div class={`absolute inset-0 flex items-center justify-center bg-blue-100 bg-opacity-80 rounded-lg transition-opacity duration-200 ${isDragging ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                  <div class="text-blue-600 font-medium text-lg bg-white px-4 py-2 rounded-lg shadow-sm border border-blue-200">
+                    Drop file here
+                  </div>
+                </div>
                 <svg class="w-8 h-8 mb-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="mb-1 text-sm text-slate-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                <p class="mb-1 text-sm text-slate-500">
+                  <span class="font-semibold">Click to upload</span> or drag and drop
+                </p>
                 <p class="text-xs text-slate-500">OPML, XML, RSS, ATOM, or TXT files</p>
               </div>
               <input

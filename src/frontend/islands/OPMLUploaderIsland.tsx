@@ -36,24 +36,40 @@ export default function OPMLUploaderIsland() {
     return false;
   };
 
+  // Process a file whether it comes from input or drag & drop
+  const processFile = (file: File) => {
+    if (!isCompatibleFileType(file.name)) {
+      uploadStatus.value = "error";
+      uploadErrorMessage.value = "File must be an OPML, XML, or other compatible format.";
+      selectedFile.value = null;
+      selectedFileName.value = null;
+      return false;
+    } else {
+      selectedFile.value = file;
+      selectedFileName.value = file.name;
+      uploadStatus.value = "idle";
+      uploadErrorMessage.value = null;
+      return true;
+    }
+  };
+
+  // Handle file selection from input
   const handleFileChange = (event: JSX.TargetedEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
     if (file) {
-      if (!isCompatibleFileType(file.name)) {
-        uploadStatus.value = "error";
-        uploadErrorMessage.value = "File must be an OPML, XML, or other compatible format.";
-        selectedFile.value = null;
-        selectedFileName.value = null;
+      if (!processFile(file)) {
         event.currentTarget.value = "";
-      } else {
-        selectedFile.value = file;
-        selectedFileName.value = file.name;
-        uploadStatus.value = "idle";
-        uploadErrorMessage.value = null;
       }
     } else {
       selectedFile.value = null;
       selectedFileName.value = null;
+    }
+  };
+
+  // Handle file drop
+  const handleFileDrop = (files: FileList | null) => {
+    if (files && files.length > 0) {
+      processFile(files[0]);
     }
   };
 
@@ -97,6 +113,7 @@ export default function OPMLUploaderIsland() {
     <div class="bg-white border border-slate-200 rounded-lg shadow-sm p-6">
       <OPMLUploader
         onFileChange={handleFileChange}
+        onFileDrop={handleFileDrop}
         onUpload={handleUpload}
         uploadStatus={uploadStatus.value}
         errorMessage={uploadErrorMessage.value}
