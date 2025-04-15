@@ -1,5 +1,6 @@
 // src/frontend/islands/ValidationStatus.tsx
 import { useSignal } from "@preact/signals";
+import { apiFetch } from "../utils/apiFetch.ts";
 import { useEffect, useRef } from "preact/hooks";
 import type { ValidationProgress } from "../../backend/types/validation.types.ts";
 
@@ -53,12 +54,12 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
       }
 
       // Trigger validation
-      const response = await fetch('/api/validate', {
-        method: 'POST',
+      const response = await apiFetch("/api/validate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -96,7 +97,7 @@ export default function ValidationStatus({ feedCount, selectedFeeds, allFeeds, o
 
       try {
         //console.log(`Polling validation status for ID: ${validationId.value}`);
-        const response = await fetch(`/api/validation-status?validationId=${validationId.value}`);
+        const response = await apiFetch("/api/validation-status?validationId=" + validationId.value);
 
         if (!response.ok) {
           throw new Error(`Failed to get validation status: ${response.status} ${response.statusText}`);

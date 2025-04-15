@@ -1,5 +1,6 @@
 // src/frontend/islands/OPMLUploaderIsland.tsx
 import { useSignal } from "@preact/signals";
+import { apiFetch } from "../utils/apiFetch.ts";
 import { JSX } from "preact";
 import OPMLUploader from "../components/OPMLUploader.tsx";
 
@@ -86,7 +87,7 @@ export default function OPMLUploaderIsland() {
     formData.append("file", selectedFile.value);
 
     try {
-      const response = await fetch("/api/upload", {
+      const response = await apiFetch("/api/upload", {
         method: "POST",
         body: formData,
       });

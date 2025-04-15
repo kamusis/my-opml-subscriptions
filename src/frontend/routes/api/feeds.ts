@@ -1,6 +1,7 @@
 // src/frontend/routes/api/feeds.ts
 import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
+import { extractUserIdFromRequest } from "../../utils/user.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import type { ListFeedsOptions, ListFeedsResult } from "../../../backend/types/storage.types.ts";
 import type { FeedStatus } from "../../../backend/types/feed.types.ts";
@@ -40,9 +41,15 @@ export const handler: Handlers = {
         options.status = status as FeedStatus;
       }
       
-      // Get storage service and fetch feeds
+      // Extract userId from headers (multi-user support)
+      const [userId, errorResponse] = extractUserIdFromRequest(req);
+      if (errorResponse) return errorResponse;
+      // Get storage service and fetch feeds for this user
       const storage = await getStorageService();
-      const result: ListFeedsResult = await storage.listFeeds(options);
+      const result: ListFeedsResult = await storage.listFeeds(
+        userId!, // non-null assertion
+        options
+      );
       
       // Return JSON response
       return new Response(JSON.stringify(result), {

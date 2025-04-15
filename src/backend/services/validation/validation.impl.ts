@@ -21,7 +21,7 @@ export class ValidationServiceImpl {
     private readonly websocket: WebSocketService
   ) {}
 
-  async startValidation(opmlId: string): Promise<string> {
+  async startValidation(userId: string, opmlId: string): Promise<string> {
     const validationId = crypto.randomUUID();
     const session: ValidationSession = {
       id: validationId,
@@ -41,7 +41,7 @@ export class ValidationServiceImpl {
     };
 
     try {
-      await this.storage.saveValidationSession(validationId, session);
+      await this.storage.saveValidationSession(userId, validationId, session);
       return validationId;
     } catch (error) {
       logger.error(`Failed to start validation session: ${error}`);
@@ -49,9 +49,9 @@ export class ValidationServiceImpl {
     }
   }
 
-  async getValidationStatus(validationId: string): Promise<ValidationSession | null> {
+  async getValidationStatus(userId: string, validationId: string): Promise<ValidationSession | null> {
     try {
-      const result = await this.storage.getValidationSession(validationId);
+      const result = await this.storage.getValidationSession(userId, validationId);
       return result?.value ?? null;
     } catch (error) {
       logger.error(`Failed to get validation status: ${error}`);
@@ -59,12 +59,12 @@ export class ValidationServiceImpl {
     }
   }
 
-  async validateFeeds(urls: string[], validationId: string): Promise<ValidationResults> {
+  async validateFeeds(userId: string, urls: string[], validationId: string): Promise<ValidationResults> {
     const startTime = Date.now();
     
     try {
       // Use the validateBatchFeeds method for efficient parallel processing
-      const batchResult = await this.validateBatchFeeds(urls, validationId);
+      const batchResult = await this.validateBatchFeeds(userId, urls, validationId);
       
       // Transform the batch result into the expected ValidationResults format
       const results: ValidationResults = {
@@ -88,21 +88,22 @@ export class ValidationServiceImpl {
       return results;
     } catch (error) {
       logger.error('Validation process failed:', error);
-      await this.handleValidationError(validationId, error);
+      await this.handleValidationError(userId, validationId, error);
       throw error;
     }
   }
 
-  async revalidateFeed(url: string): Promise<FeedValidationResult> {
+  async revalidateFeed(userId: string, url: string): Promise<FeedValidationResult> {
     try {
-      return await this.validateSingleFeed(url);
+      const result = await this.validateSingleFeed(userId, url);
+      return result;
     } catch (error) {
       logger.error(`Revalidation failed for feed ${url}:`, error);
       throw error;
     }
   }
 
-  private async validateBatchFeeds(urls: string[], validationId: string = crypto.randomUUID()): Promise<BatchValidationResult> {
+  private async validateBatchFeeds(userId: string, urls: string[], validationId: string = crypto.randomUUID()): Promise<BatchValidationResult> {
     const totalFeeds = urls.length;
     let processedFeeds = 0;
     const results: FeedValidationResult[] = [];
@@ -122,7 +123,7 @@ export class ValidationServiceImpl {
 
     try {
       // Save initial session state
-      await this.storage.saveValidationSession(validationId, {
+      await this.storage.saveValidationSession(userId, validationId, {
         id: validationId,
         opmlId: 'batch-validation',
         status: 'processing',
@@ -137,7 +138,7 @@ export class ValidationServiceImpl {
         const batchResults = await Promise.all(
           batch.map(async (url) => {
             try {
-              const result = await this.validateSingleFeed(url);
+              const result = await this.validateSingleFeed(userId, url);
               processedFeeds++;
               
               // Update progress
@@ -146,16 +147,16 @@ export class ValidationServiceImpl {
               progress.categoryCounts[result.status]++;
               
               // Update progress in storage and broadcast
-              await this.updateProgress(validationId, progress);
+              await this.updateProgress(userId, validationId, progress);
               
               // Update feed record immediately after validation
               try {
-                const existingFeed = await this.storage.getFeedData(url);
+                const existingFeed = await this.storage.getFeedData(userId, url);
                 const now = new Date().toISOString();
                 
                 if (existingFeed?.value) {
                   const feed = existingFeed.value;
-                  await this.storage.updateFeedData(url, {
+                  await this.storage.updateFeedData(userId, url, {
                     status: result.status,
                     lastUpdate: result.lastUpdate || feed.lastUpdate,
                     updatesInLast3Months: result.updatesInLast3Months || feed.updatesInLast3Months,
@@ -194,7 +195,7 @@ export class ValidationServiceImpl {
       }
 
       // Complete validation
-      await this.completeValidation(validationId, {
+      await this.completeValidation(userId, validationId, {
         validatedFeeds: processedFeeds,
         categories: progress.categoryCounts,
         duration: 0,
@@ -209,12 +210,12 @@ export class ValidationServiceImpl {
       };
     } catch (error) {
       logger.error('Batch validation failed:', error);
-      await this.handleValidationError(validationId, error);
+      await this.handleValidationError(userId, validationId, error);
       throw error;
     }
   }
 
-  private async validateSingleFeed(url: string): Promise<FeedValidationResult> {
+  private async validateSingleFeed(_userId: string, url: string): Promise<FeedValidationResult> {
     // First check accessibility
     const isAccessible = await checkFeedAccessibility(url);
     if (!isAccessible) {
@@ -246,9 +247,9 @@ export class ValidationServiceImpl {
     };
   }
 
-  private async updateProgress(validationId: string, progress: ValidationProgress): Promise<void> {
+  private async updateProgress(userId: string, validationId: string, progress: ValidationProgress): Promise<void> {
     try {
-      await this.storage.updateValidationProgress(validationId, progress);
+      await this.storage.updateValidationProgress(userId, validationId, progress);
       this.websocket.broadcastProgress(validationId, progress);
     } catch (error) {
       logger.error(`Failed to update progress for validation ${validationId}:`, error);
@@ -256,14 +257,14 @@ export class ValidationServiceImpl {
     }
   }
 
-  private async completeValidation(validationId: string, results: ValidationResults): Promise<void> {
+  private async completeValidation(userId: string, validationId: string, results: ValidationResults): Promise<void> {
     try {
       // Update session status
-      const session = await this.getValidationStatus(validationId);
+      const session = await this.getValidationStatus(userId, validationId);
       if (session) {
         session.status = 'completed';
         session.endTime = new Date().toISOString();
-        await this.storage.saveValidationSession(validationId, session);
+        await this.storage.saveValidationSession(userId, validationId, session);
       }
 
       // Broadcast completion
@@ -273,15 +274,15 @@ export class ValidationServiceImpl {
     }
   }
 
-  private async handleValidationError(validationId: string, error: unknown): Promise<void> {
+  private async handleValidationError(userId: string, validationId: string, error: unknown): Promise<void> {
     try {
       // Update session status
-      const session = await this.getValidationStatus(validationId);
+      const session = await this.getValidationStatus(userId, validationId);
       if (session) {
         session.status = 'error';
         session.endTime = new Date().toISOString();
         session.error = error instanceof Error ? error.message : 'Unknown error occurred';
-        await this.storage.saveValidationSession(validationId, session);
+        await this.storage.saveValidationSession(userId, validationId, session);
       }
 
       // Broadcast error
@@ -293,5 +294,15 @@ export class ValidationServiceImpl {
     } catch (err) {
       logger.error(`Failed to handle validation error for ${validationId}:`, err);
     }
+  }
+
+  /**
+   * Performs batch validation of multiple feeds with progress tracking for a specific user
+   * @param userId The user ID
+   * @param urls Array of feed URLs to validate
+   * @returns Results of the batch validation process
+   */
+  async batchValidate(userId: string, urls: string[]): Promise<BatchValidationResult> {
+    return await this.validateBatchFeeds(userId, urls);
   }
 }

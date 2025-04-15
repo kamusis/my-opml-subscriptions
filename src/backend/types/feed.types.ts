@@ -36,6 +36,8 @@ export interface FeedEntry extends FeedBase {
  * Used primarily by the storage service
  */
 export interface FeedRecord extends FeedBase {
+    /** User this feed belongs to */
+    userId: string;
     /** Category the feed belongs to */
     category: string;
     /** When the feed was last validated */

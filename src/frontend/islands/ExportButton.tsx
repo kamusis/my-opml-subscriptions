@@ -1,5 +1,6 @@
 // src/frontend/islands/ExportButton.tsx
 import { useState } from "preact/hooks";
+import { apiFetch } from "../utils/apiFetch.ts";
 import type { FeedRecord } from "../../backend/types/feed.types.ts";
 
 interface ExportButtonProps {
@@ -23,7 +24,7 @@ export default function ExportButton({ selectedFeeds, allFeeds }: ExportButtonPr
       const feedsToExport = allFeeds.filter(feed => selectedFeeds.has(feed.url));
       
       // Make the API call
-      const response = await fetch('/api/export', {
+      const response = await apiFetch('/api/export', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

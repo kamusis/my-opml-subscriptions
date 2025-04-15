@@ -1,5 +1,6 @@
 import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
+import { extractUserIdFromRequest } from "../../utils/user.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import { ValidationServiceImpl } from "../../../backend/services/validation/index.ts";
 import { WebSocketServiceImpl } from "../../../backend/services/websocket/index.ts";
@@ -51,13 +52,16 @@ export const handler: Handlers = {
         );
       }
 
+      // Multi-user support: extract userId from headers
+      const [userId, errorResponse] = extractUserIdFromRequest(req);
+      if (errorResponse) return errorResponse;
       // Get service instances
       const storage = await get_storage_service();
       const websocket_service = get_websocket_service();
       const validation_service = new ValidationServiceImpl(storage, websocket_service);
 
       // Get validation status
-      const validation_session = await validation_service.getValidationStatus(validation_id);
+      const validation_session = await validation_service.getValidationStatus(userId!, validation_id);
       
       if (!validation_session) {
         return new Response(

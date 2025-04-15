@@ -70,8 +70,11 @@ export class KVStorageService implements IKVStorageService {
    * @param _options - Optional atomic operation parameters
    * @returns Promise with the operation's versionstamp
    */
-  async saveFeedData(feed: FeedRecord, _options?: AtomicOptions): Promise<{ versionstamp: string }> {
-    const key = [StoragePrefix.Feed, feed.url];
+  /**
+   * Saves or updates a feed record for a specific user
+   */
+  async saveFeedData(userId: string, feed: FeedRecord, _options?: AtomicOptions): Promise<{ versionstamp: string }> {
+    const key = [userId, StoragePrefix.Feed, feed.url];
     // Handle atomic operations if version checking is requested
     if (_options?.check) {
       const result = await this.kv.atomic()
@@ -95,8 +98,11 @@ export class KVStorageService implements IKVStorageService {
    * @param url - The URL of the feed to retrieve
    * @returns Promise with feed data and versionstamp, or null if not found
    */
-  async getFeedData(url: string): Promise<{ value: FeedRecord; versionstamp: string } | null> {
-    const key = [StoragePrefix.Feed, url];
+  /**
+   * Retrieves a feed record for a user by URL
+   */
+  async getFeedData(userId: string, url: string): Promise<{ value: FeedRecord; versionstamp: string } | null> {
+    const key = [userId, StoragePrefix.Feed, url];
     const result = await this.kv.get<FeedRecord>(key);
     if (!result.value) {
       logger.debug(`No feed data found for ${url}`);
@@ -115,18 +121,22 @@ export class KVStorageService implements IKVStorageService {
    * @returns Promise with the operation's versionstamp
    * @throws Error if feed not found
    */
+  /**
+   * Updates specific fields of a feed record for a user
+   */
   async updateFeedData(
+    userId: string,
     url: string, 
     data: Partial<FeedRecord>, 
     _options?: AtomicOptions
   ): Promise<{ versionstamp: string }> {
-    const existing = await this.getFeedData(url);
+    const existing = await this.getFeedData(userId, url);
     if (!existing) {
       throw new Error(`Feed ${url} not found`);
     }
 
     const updatedFeed = { ...existing.value, ...data };
-    return await this.saveFeedData(updatedFeed, _options);
+    return await this.saveFeedData(userId, updatedFeed, _options);
   }
 
   /**
@@ -137,8 +147,11 @@ export class KVStorageService implements IKVStorageService {
    * @returns Promise with paginated feed list and metadata
    */
  
-  async listFeeds(options: ListFeedsOptions): Promise<ListFeedsResult> {
-    const prefix = [StoragePrefix.Feed];
+  /**
+   * Lists feeds for a specific user with filtering, sorting, and pagination support
+   */
+  async listFeeds(userId: string, options: ListFeedsOptions): Promise<ListFeedsResult> {
+    const prefix = [userId, StoragePrefix.Feed];
     const iter = this.kv.list<FeedRecord>({ prefix });
     const feeds: FeedRecord[] = [];
     let cursor: string | null = null;
@@ -196,8 +209,11 @@ export class KVStorageService implements IKVStorageService {
    * @param url - The URL of the feed to delete
    * @param _options - Optional atomic operation parameters
    */
-  async deleteFeedData(url: string, _options?: AtomicOptions): Promise<void> {
-    const key = [StoragePrefix.Feed, url];
+  /**
+   * Deletes a feed record for a user
+   */
+  async deleteFeedData(userId: string, url: string, _options?: AtomicOptions): Promise<void> {
+    const key = [userId, StoragePrefix.Feed, url];
     if (_options?.check) {
       const result = await this.kv.atomic()
         .check({ key, versionstamp: _options.check.versionstamp })
@@ -220,11 +236,15 @@ export class KVStorageService implements IKVStorageService {
    * @param data - Validation session data
    * @returns Promise with the operation's versionstamp
    */
+  /**
+   * Saves a validation session for a user
+   */
   async saveValidationSession(
+    userId: string,
     id: string, 
     data: ValidationSession
   ): Promise<{ versionstamp: string }> {
-    const key = [StoragePrefix.Session, id];
+    const key = [userId, StoragePrefix.Session, id];
     const result = await this.kv.set(key, data);
     logger.debug(`Saved validation session ${id}`);
     return { versionstamp: result.versionstamp };
@@ -236,10 +256,14 @@ export class KVStorageService implements IKVStorageService {
    * @param id - The ID of the validation session
    * @returns Promise with session data and versionstamp, or null if not found
    */
+  /**
+   * Retrieves a validation session for a user by ID
+   */
   async getValidationSession(
+    userId: string,
     id: string
   ): Promise<{ value: ValidationSession; versionstamp: string } | null> {
-    const key = [StoragePrefix.Session, id];
+    const key = [userId, StoragePrefix.Session, id];
     const result = await this.kv.get<ValidationSession>(key);
     if (!result.value) {
       logger.debug(`No validation session found for ${id}`);
@@ -257,12 +281,16 @@ export class KVStorageService implements IKVStorageService {
    * @returns Promise with the operation's versionstamp
    * @throws Error if session not found
    */
+  /**
+   * Updates the progress of an ongoing validation session for a user
+   */
   async updateValidationProgress(
+    userId: string,
     id: string,
     progress: ValidationProgress,
     _options?: AtomicOptions
   ): Promise<{ versionstamp: string }> {
-    const session = await this.getValidationSession(id);
+    const session = await this.getValidationSession(userId, id);
     if (!session) {
       throw new Error(`Validation session ${id} not found`);
     }
@@ -272,7 +300,7 @@ export class KVStorageService implements IKVStorageService {
       progress
     };
 
-    return await this.saveValidationSession(id, updatedSession);
+    return await this.saveValidationSession(userId, id, updatedSession);
   }
 
   /**
@@ -281,8 +309,11 @@ export class KVStorageService implements IKVStorageService {
    * 
    * @param id - The ID of the validation session to delete
    */
-  async deleteValidationSession(id: string): Promise<void> {
-    const key = [StoragePrefix.Session, id];
+  /**
+   * Deletes a validation session for a user
+   */
+  async deleteValidationSession(userId: string, id: string): Promise<void> {
+    const key = [userId, StoragePrefix.Session, id];
     await this.kv.delete(key);
     logger.debug(`Deleted validation session ${id}`);
   }
@@ -293,9 +324,12 @@ export class KVStorageService implements IKVStorageService {
    * 
    * @returns Promise with array of category statistics
    */
-  async getCategoryStats(): Promise<CategoryStats[]> {
+  /**
+   * Generates statistics for all feed categories for a user
+   */
+  async getCategoryStats(userId: string): Promise<CategoryStats[]> {
     const categoryCounts = new Map<string, CategoryStats>();
-    const iter = this.kv.list<FeedRecord>({ prefix: [StoragePrefix.Feed] });
+    const iter = this.kv.list<FeedRecord>({ prefix: [userId, StoragePrefix.Feed] });
 
     // Process each feed and aggregate statistics by category
     for await (const entry of iter) {
@@ -357,12 +391,16 @@ export class KVStorageService implements IKVStorageService {
    * @param _options - Optional atomic operation parameters
    * @returns Promise with the operation's versionstamp
    */
+  /**
+   * Updates the list of feeds in a category for a user
+   */
   async updateCategoryFeeds(
+    userId: string,
     category: string,
     feeds: string[],
     _options?: AtomicOptions
   ): Promise<{ versionstamp: string }> {
-    const key = [StoragePrefix.Category, category];
+    const key = [userId, StoragePrefix.Category, category];
     if (_options?.check) {
       const result = await this.kv.atomic()
         .check({ key, versionstamp: _options.check.versionstamp })
@@ -383,9 +421,12 @@ export class KVStorageService implements IKVStorageService {
    * 
    * @returns Promise with array of category names
    */
-  async listCategories(): Promise<string[]> {
+  /**
+   * Lists all unique categories from feed records for a user
+   */
+  async listCategories(userId: string): Promise<string[]> {
     const categories = new Set<string>();
-    const iter = this.kv.list<FeedRecord>({ prefix: [StoragePrefix.Feed] });
+    const iter = this.kv.list<FeedRecord>({ prefix: [userId, StoragePrefix.Feed] });
     
     for await (const entry of iter) {
       categories.add(entry.value.category);
@@ -442,7 +483,7 @@ export class KVStorageService implements IKVStorageService {
    * @param updates - Array of feed updates to perform
    * @returns Promise with batch operation results
    */
-  async batchUpdateFeeds(updates: FeedUpdate[]): Promise<BatchResult> {
+  async batchUpdateFeeds(userId: string, updates: FeedUpdate[]): Promise<BatchResult> {
     const atomic = this.kv.atomic();
     const errors: { feedUrl: string; error: string }[] = [];
     let processed = 0;
@@ -450,7 +491,7 @@ export class KVStorageService implements IKVStorageService {
     // Process each update in the batch
     for (const update of updates) {
       try {
-        const existing = await this.getFeedData(update.url);
+        const existing = await this.getFeedData(userId, update.url);
         if (!existing) {
           errors.push({
             feedUrl: update.url,
@@ -460,7 +501,7 @@ export class KVStorageService implements IKVStorageService {
         }
 
         const updatedFeed = { ...existing.value, ...update.data };
-        atomic.set([StoragePrefix.Feed, update.url], updatedFeed);
+        atomic.set([userId, StoragePrefix.Feed, update.url], updatedFeed);
         processed++;
       } catch (error) {
         errors.push({
@@ -486,22 +527,9 @@ export class KVStorageService implements IKVStorageService {
 
   // Clear all data in the KV store (for testing purposes)
   async clearAllData(): Promise<void> {
-    // Clear feeds
-    const feedIter = this.kv.list<FeedRecord>({ prefix: [StoragePrefix.Feed] });
-    for await (const entry of feedIter) {
-      await this.kv.delete([StoragePrefix.Feed, entry.value.url]);
-    }
-
-    // Clear sessions
-    const sessionIter = this.kv.list<unknown>({ prefix: [StoragePrefix.Session] });
-    for await (const entry of sessionIter) {
-      const key = entry.key as string[];
-      await this.kv.delete(key);
-    }
-
-    // Clear categories
-    const categoryIter = this.kv.list<unknown>({ prefix: [StoragePrefix.Category] });
-    for await (const entry of categoryIter) {
+    // Wipe all keys from the KV store, regardless of key structure (future-proof)
+    const iter = this.kv.list<unknown>({ prefix: [] });
+    for await (const entry of iter) {
       const key = entry.key as string[];
       await this.kv.delete(key);
     }
