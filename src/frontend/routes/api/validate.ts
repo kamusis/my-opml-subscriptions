@@ -1,5 +1,6 @@
 import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
+import { extractUserIdFromRequest } from "../../../utils/user.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import { ValidationServiceImpl } from "../../../backend/services/validation/index.ts";
 import { getMockWebSocketService } from "../../../backend/services/websocket/mock-websocket.service.ts";
@@ -28,6 +29,10 @@ export const handler: Handlers = {
         logger.warn("Failed to parse request body as JSON:", error);
       }
 
+      // Multi-user support: extract userId from headers
+      const [userId, errorResponse] = extractUserIdFromRequest(req);
+      if (errorResponse) return errorResponse;
+      
       // Get service instances
       const storage = await getStorageService();
       const mockWebSocketService = getMockWebSocketService();
@@ -35,7 +40,7 @@ export const handler: Handlers = {
 
       // Generate a unique validation ID
       const opmlId = requestBody.opmlId || "default";
-      const validationId = await validationService.startValidation(opmlId);
+      const validationId = await validationService.startValidation(userId!, opmlId);
 
       // Determine which feeds to validate
       let feedUrls: string[] = [];
@@ -49,7 +54,7 @@ export const handler: Handlers = {
         const options: ListFeedsOptions = {
           limit: 1000, // Set a reasonable limit
         };
-        const feedsResult = await storage.listFeeds(options);
+        const feedsResult = await storage.listFeeds(userId!, options);
         feedUrls = feedsResult.feeds.map(feed => feed.url);
         logger.info(`Validating all ${feedUrls.length} feeds`);
       }
@@ -72,7 +77,7 @@ export const handler: Handlers = {
           // Start the validation process which will update progress via KV storage
           // and return detailed results for each feed
           // Feed records are now updated during individual validation in validateBatchFeeds
-          const results = await validationService.validateFeeds(feedUrls, validationId);
+          const results = await validationService.validateFeeds(userId!, feedUrls, validationId);
           logger.info(`Validation completed for ${results.validatedFeeds} feeds`);
         } catch (error) {
           logger.error("Error during validation process:", error);
@@ -116,13 +121,16 @@ export const handler: Handlers = {
         });
       }
 
+      // Multi-user support: extract userId from headers
+      const [userId, errorResponse] = extractUserIdFromRequest(req);
+      if (errorResponse) return errorResponse;
       // Get service instances
       const storage = await getStorageService();
       const mockWebSocketService = getMockWebSocketService();
       const validationService = new ValidationServiceImpl(storage, mockWebSocketService);
 
       // Get validation status
-      const status = await validationService.getValidationStatus(validationId);
+      const status = await validationService.getValidationStatus(userId!, validationId);
 
       if (!status) {
         return new Response(JSON.stringify({

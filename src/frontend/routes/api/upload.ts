@@ -1,5 +1,6 @@
 import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
+import { extractUserIdFromRequest } from "../../../utils/user.ts";
 import { parseOPML } from "../../../backend/parseOPML.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import type { FeedRecord } from "../../../backend/types/feed.types.ts";
@@ -8,6 +9,10 @@ const logger = createLogger("api:upload");
 
 export const handler: Handlers = {
   async POST(req) {
+    // Multi-user support: extract userId from headers
+    const [userId, errorResponse] = extractUserIdFromRequest(req);
+    if (errorResponse) return errorResponse;
+
     try {
       // Check if the request is multipart/form-data
       const contentType = req.headers.get("content-type");
@@ -118,6 +123,7 @@ export const handler: Handlers = {
       for (const [category, feeds] of Object.entries(opmlData.categories)) {
         for (const feed of feeds) {
           const feedRecord: FeedRecord = {
+            userId: userId!, // Multi-user: associate feed with user
             url: feed.url,
             status: feed.status,
             lastUpdate: feed.lastUpdate ?? null,
@@ -127,7 +133,7 @@ export const handler: Handlers = {
             lastValidated: null as string | null,
             validationHistory: []
           };
-          await storage.saveFeedData(feedRecord);
+          await storage.saveFeedData(userId!, feedRecord);
         }
       }
 

@@ -4,6 +4,7 @@ import { useEffect } from "preact/hooks";
 import FeedListControls from "./FeedListControls.tsx";
 import ValidationStatus from "./ValidationStatus.tsx";
 import type { FeedRecord } from "../../backend/types/feed.types.ts";
+import { apiFetch } from "../utils/apiFetch.ts";
 
 /**
  * FeedManagementIsland is responsible for managing feed data, selection, and validation.
@@ -29,7 +30,7 @@ export default function FeedManagementIsland() {
       }
 
       // Set a high limit to fetch all feeds since we don't have pagination yet
-      const response = await fetch("/api/feeds?limit=1000");
+      const response = await apiFetch("/api/feeds?limit=1000");
       if (!response.ok) {
         throw new Error(`Failed to fetch feeds: ${response.status}`);
       }

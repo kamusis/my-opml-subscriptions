@@ -80,27 +80,62 @@ export interface IKVStorageService {
 
     // Lifecycle
     close(): void;
-    clearAllData(): Promise<void>;
 
     // Feed data storage
-    saveFeedData(feed: FeedRecord, options?: AtomicOptions): Promise<{ versionstamp: string }>;
-    getFeedData(url: string): Promise<{ value: FeedRecord; versionstamp: string } | null>;
-    updateFeedData(url: string, data: Partial<FeedRecord>, options?: AtomicOptions): Promise<{ versionstamp: string }>;
-    listFeeds(options: ListFeedsOptions): Promise<ListFeedsResult>; // Uses ListFeedsResult from this file
-    deleteFeedData(url: string, options?: AtomicOptions): Promise<void>;
+    /**
+     * Saves or updates a feed record for a specific user
+     */
+    saveFeedData(userId: string, feed: FeedRecord, options?: AtomicOptions): Promise<{ versionstamp: string }>;
+    /**
+     * Retrieves a feed record for a user by URL
+     */
+    getFeedData(userId: string, url: string): Promise<{ value: FeedRecord; versionstamp: string } | null>;
+    /**
+     * Updates specific fields of a feed record for a user
+     */
+    updateFeedData(userId: string, url: string, data: Partial<FeedRecord>, options?: AtomicOptions): Promise<{ versionstamp: string }>;
+    /**
+     * Lists feeds for a user with filtering, sorting, and pagination support
+     */
+    listFeeds(userId: string, options: ListFeedsOptions): Promise<ListFeedsResult>;
+    /**
+     * Deletes a feed record for a user
+     */
+    deleteFeedData(userId: string, url: string, options?: AtomicOptions): Promise<void>;
 
     // Validation session management
-    saveValidationSession(id: string, data: ValidationSession): Promise<{ versionstamp: string }>;
-    getValidationSession(id: string): Promise<{ value: ValidationSession; versionstamp: string } | null>;
-    updateValidationProgress(id: string, progress: ValidationProgress, options?: AtomicOptions): Promise<{ versionstamp: string }>;
-    deleteValidationSession(id: string): Promise<void>;
+    /**
+     * Saves a validation session for a user
+     */
+    saveValidationSession(userId: string, id: string, data: ValidationSession): Promise<{ versionstamp: string }>;
+    /**
+     * Retrieves a validation session for a user by ID
+     */
+    getValidationSession(userId: string, id: string): Promise<{ value: ValidationSession; versionstamp: string } | null>;
+    /**
+     * Updates the progress of an ongoing validation session for a user
+     */
+    updateValidationProgress(userId: string, id: string, progress: ValidationProgress, options?: AtomicOptions): Promise<{ versionstamp: string }>;
+    /**
+     * Deletes a validation session for a user
+     */
+    deleteValidationSession(userId: string, id: string): Promise<void>;
 
     // Category management
-    getCategoryStats(): Promise<FeedCategoryStats[]>; // Use imported CategoryStats from feed.types.ts
-    updateCategoryFeeds(category: string, feeds: string[], options?: AtomicOptions): Promise<{ versionstamp: string }>;
-    listCategories(): Promise<string[]>;
+    /**
+     * Generates statistics for all feed categories for a user
+     */
+    getCategoryStats(userId: string): Promise<FeedCategoryStats[]>; // Use imported CategoryStats from feed.types.ts
+    /**
+     * Updates the list of feeds in a category for a user
+     */
+    updateCategoryFeeds(userId: string, category: string, feeds: string[], options?: AtomicOptions): Promise<{ versionstamp: string }>;
+    /**
+     * Lists all unique categories from feed records for a user
+     */
+    listCategories(userId: string): Promise<string[]>;
 
     // Batch operations with atomic guarantees
     atomic(): AtomicBatch; // Uses AtomicBatch from this file
-    batchUpdateFeeds(updates: FeedUpdate[]): Promise<BatchResult>; // Uses BatchResult from this file
+    batchUpdateFeeds(userId: string, updates: FeedUpdate[]): Promise<BatchResult>; // Uses BatchResult from this file
 }

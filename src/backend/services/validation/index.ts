@@ -24,11 +24,12 @@ export interface ValidationService {
   getValidationStatus(validationId: string): Promise<ValidationSession | null>;
 
   /**
-   * Validates a list of feed URLs
+   * Validates a list of feed URLs for a specific user
+   * @param userId The user ID
    * @param feeds Array of feed URLs to validate
    * @returns Results of the validation process
    */
-  validateFeeds(feeds: string[]): Promise<ValidationResults>;
+  validateFeeds(userId: string, feeds: string[]): Promise<ValidationResults>;
 
   /**
    * Re-validates a single feed
@@ -38,11 +39,12 @@ export interface ValidationService {
   revalidateFeed(url: string): Promise<FeedValidationResult>;
 
   /**
-   * Performs batch validation of multiple feeds with progress tracking
+   * Performs batch validation of multiple feeds with progress tracking for a specific user
+   * @param userId The user ID
    * @param urls Array of feed URLs to validate
    * @returns Results of the batch validation process
    */
-  batchValidate(urls: string[]): Promise<BatchValidationResult>;
+  batchValidate(userId: string, urls: string[]): Promise<BatchValidationResult>;
 }
 
 // Re-export the implementation

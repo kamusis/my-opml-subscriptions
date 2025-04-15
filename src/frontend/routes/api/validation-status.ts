@@ -1,6 +1,7 @@
 // src/frontend/routes/api/validation-status.ts
 import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
+import { extractUserIdFromRequest } from "../../../utils/user.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import { ValidationServiceImpl } from "../../../backend/services/validation/index.ts";
 import { getMockWebSocketService } from "../../../backend/services/websocket/mock-websocket.service.ts";
@@ -16,6 +17,10 @@ async function getStorageService(): Promise<KVStorageService> {
 
 export const handler: Handlers = {
   async GET(req) {
+    // Multi-user support: extract userId from headers
+    const [userId, errorResponse] = extractUserIdFromRequest(req);
+    if (errorResponse) return errorResponse;
+
     try {
       // Get validation ID from URL
       const url = new URL(req.url);
@@ -35,7 +40,7 @@ export const handler: Handlers = {
       const validationService = new ValidationServiceImpl(storage, mockWebSocketService);
       
       // Get validation status
-      const session = await validationService.getValidationStatus(validationId);
+      const session = await validationService.getValidationStatus(userId!, validationId);
       
       if (!session) {
         return new Response(JSON.stringify({ error: "Validation session not found" }), {
