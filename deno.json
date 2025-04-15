@@ -28,6 +28,7 @@
     "frontend:manifest": "deno task frontend:cli manifest $(pwd)/src/frontend",
     "frontend:dev": "deno run -A --watch=src/frontend/static/,src/frontend/routes/ src/frontend/dev.ts",
     "frontend:build": "deno run -A src/frontend/dev.ts build",
+    "build": "deno run -A src/frontend/dev.ts build",
     "frontend:start": "deno run -A src/frontend/main.ts",
     "frontend:update": "cd src/frontend && deno run -A -r https://fresh.deno.dev/update ."
   },

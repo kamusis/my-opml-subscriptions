@@ -1,6 +1,7 @@
 # Deno specific
 /.deno/
 /node_modules/
+_fresh/
 
 # Generated files
 /feeds/*.xml
