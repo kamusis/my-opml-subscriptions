@@ -1,6 +1,6 @@
 # Deno specific
 /.deno/
-/node_modules/
+node_modules/
 _fresh/
 
 # Generated files
