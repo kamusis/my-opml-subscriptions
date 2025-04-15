@@ -1,7 +1,7 @@
 import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
 import { extractUserIdFromRequest } from "../../../utils/user.ts";
-import { parseOPML } from "../../../backend/parseOPML.ts";
+import { parseOpmlContents } from "../../../backend/parseOPML.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import type { FeedRecord } from "../../../backend/types/feed.types.ts";
 
@@ -68,37 +68,14 @@ export const handler: Handlers = {
 
       // Generate unique ID and save file
       const uploadId = crypto.randomUUID();
-      // Preserve the original file extension
-      const fileExtension = file.name.substring(file.name.lastIndexOf('.'));
-      const fileName = `${uploadId}${fileExtension}`;
-      const filePath = `feeds/${fileName}`;
-
-      try {
-        // Save uploaded file content
-        const arrayBuffer = await file.arrayBuffer();
-        await Deno.writeFile(filePath, new Uint8Array(arrayBuffer));
-      } catch (error) {
-        logger.error(`Error saving file: ${error}`);
-        return new Response(JSON.stringify({
-          error: "Error saving file"
-        }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
+      // Read uploaded file content as buffer and parse in-memory
+      const arrayBuffer = await file.arrayBuffer();
 
       // Parse OPML
       let opmlData;
       try {
-        opmlData = await parseOPML(filePath);
+        opmlData = await parseOpmlContents(new Uint8Array(arrayBuffer));
       } catch (error) {
-        // Clean up file if parsing fails
-        try {
-          await Deno.remove(filePath);
-        } catch (cleanupError) {
-          logger.error(`Error cleaning up file after parse failure: ${cleanupError}`);
-        }
-
         logger.error(`Error parsing OPML: ${error}`);
         return new Response(JSON.stringify({
           error: "Invalid OPML file format"

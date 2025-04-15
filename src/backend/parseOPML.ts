@@ -31,14 +31,12 @@ interface ParsedOPML {
  * @returns Promise resolving to structured OPML data
  * @throws Error if OPML structure is invalid
  */
-export async function parseOPML(filePath: string): Promise<FeedCollection> {
-  // Read and parse the OPML file
-  const fileContent = await Deno.readTextFile(filePath);
-  const parsed = parse(fileContent) as ParsedOPML;
+function parseOpmlXml(xml: string): FeedCollection {
+  const parsed = parse(xml) as ParsedOPML;
 
   // Validate basic OPML structure
   if (!parsed.opml || !parsed.opml.body) {
-    logger.error("Invalid OPML structure in file:", filePath);
+    logger.error("Invalid OPML structure");
     throw new Error("Invalid OPML structure.");
   }
 
@@ -95,4 +93,35 @@ export async function parseOPML(filePath: string): Promise<FeedCollection> {
 
   logger.info(`Parsed OPML file successfully. Found ${Object.keys(categories).length} categories.`);
   return { categories };
+}
+
+/**
+ * Parses OPML XML from an in-memory buffer or string.
+ * Used for API, web, or serverless environments (e.g., Deno Deploy) where file system access is not available.
+ * Calls the shared parseOpmlXml logic.
+ */
+/**
+ * Parses OPML XML from an in-memory buffer or string.
+ * Used for API, web, or serverless environments (e.g., Deno Deploy) where file system access is not available.
+ * Calls the shared parseOpmlXml logic.
+ * Synchronous: does not perform any async operations.
+ */
+export function parseOpmlContents(contents: Uint8Array | ArrayBuffer | string): FeedCollection {
+  let xml: string;
+  if (typeof contents === "string") {
+    xml = contents;
+  } else {
+    xml = new TextDecoder().decode(contents instanceof ArrayBuffer ? new Uint8Array(contents) : contents);
+  }
+  return parseOpmlXml(xml);
+}
+
+/**
+ * Parses OPML XML from a file path on disk.
+ * Used for CLI or backend scripts where file system access is available.
+ * Calls the shared parseOpmlXml logic.
+ */
+export async function parseOPML(filePath: string): Promise<FeedCollection> {
+  const fileContent = await Deno.readTextFile(filePath);
+  return parseOpmlXml(fileContent);
 }
