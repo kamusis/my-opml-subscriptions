@@ -7,9 +7,13 @@ import { getLogger, setup, LogLevels, ConsoleHandler, LogRecord } from "@std/log
 export type LogLevel = keyof typeof LogLevels;
 
 // Configure default logging setup
+// Determine log level based on environment (Deno Deploy or not)
+const isProduction = !!Deno.env.get("DENO_DEPLOYMENT_ID") || Deno.env.get("LOG_LEVEL") === "INFO";
+const logLevel: LogLevel = isProduction ? "INFO" : "DEBUG";
+
 await setup({
   handlers: {
-    console: new ConsoleHandler("DEBUG", {
+    console: new ConsoleHandler(logLevel, {
       formatter: (logRecord: LogRecord) => {
         return `${logRecord.levelName} [${logRecord.datetime.toISOString()}] ${logRecord.msg}`;
       }
@@ -17,7 +21,7 @@ await setup({
   },
   loggers: {
     default: {
-      level: "DEBUG",
+      level: logLevel,
       handlers: ["console"]
     }
   }
