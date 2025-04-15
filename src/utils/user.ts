@@ -3,7 +3,15 @@
 // Utility to manage and retrieve the persistent userId for multi-user support
 // Creates a new UUID and stores in localStorage if not already present
 
-export function getUserId(): string {
+/**
+ * Gets the persistent userId from localStorage (browser only).
+ * Returns null if not in a browser environment.
+ */
+export function getUserId(): string | null {
+  if (typeof window === "undefined" || typeof localStorage === "undefined") {
+    // Not in browser, cannot access localStorage
+    return null;
+  }
   let userId = localStorage.getItem("userId");
   if (!userId) {
     userId = crypto.randomUUID();

@@ -1,9 +1,11 @@
 import { type PageProps } from "$fresh/server.ts";
+import { useEffect } from "preact/hooks";
 import { getUserId } from "../../utils/user.ts";
 
 export default function App({ Component }: PageProps) {
-  // Ensure userId is initialized on every app load
-  getUserId();
+  useEffect(() => {
+    getUserId();
+  }, []);
   return (
     <html>
       <head>

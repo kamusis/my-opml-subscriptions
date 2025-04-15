@@ -30,7 +30,7 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "kamusis-my-opml-sub"
-          entrypoint: "frontend/main.ts"
-          root: "./src"
+          entrypoint: "src/frontend/main.ts"
+          root: "."
           
-          
+          exclude: design/,docs/

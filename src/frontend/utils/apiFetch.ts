@@ -4,6 +4,8 @@ import { getUserId } from "../../utils/user.ts";
 export function apiFetch(input: RequestInfo, init: RequestInit = {}) {
   const userId = getUserId();
   const headers = new Headers(init.headers || {});
-  headers.set("x-user-id", userId);
+  if (userId) {
+    headers.set("x-user-id", userId);
+  }
   return fetch(input, { ...init, headers });
 }
