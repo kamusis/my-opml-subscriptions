@@ -1,5 +1,5 @@
 import { type PageProps } from "$fresh/server.ts";
-import { getUserId } from "../utils/user.ts";
+import { getUserId } from "../../utils/user.ts";
 
 export default function App({ Component }: PageProps) {
   // Ensure userId is initialized on every app load

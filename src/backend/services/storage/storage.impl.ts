@@ -1,6 +1,7 @@
 /// <reference lib="deno.unstable" />
 
 import { createLogger } from "../../../utils/logger.ts";
+import { isValidUserId } from "../../../utils/user.ts";
 import type {
   AtomicBatch,
   AtomicOptions,
@@ -488,6 +489,15 @@ export class KVStorageService implements IKVStorageService {
     const errors: { feedUrl: string; error: string }[] = [];
     let processed = 0;
 
+    //validation for the userId parameter to prevent potential issues with malformed or invalid user IDs
+    if (!isValidUserId(userId)) {
+      errors.push({
+        feedUrl: '',
+        error: 'Invalid userId'
+      });
+      return { success: false, processed, errors };
+    }
+
     // Process each update in the batch
     for (const update of updates) {
       try {
@@ -525,13 +535,5 @@ export class KVStorageService implements IKVStorageService {
     this.kv.close();
   }
 
-  // Clear all data in the KV store (for testing purposes)
-  async clearAllData(): Promise<void> {
-    // Wipe all keys from the KV store, regardless of key structure (future-proof)
-    const iter = this.kv.list<unknown>({ prefix: [] });
-    for await (const entry of iter) {
-      const key = entry.key as string[];
-      await this.kv.delete(key);
-    }
-  }
+
 }

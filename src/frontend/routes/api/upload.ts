@@ -1,6 +1,6 @@
 import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
-import { extractUserIdFromRequest } from "../../utils/user.ts";
+import { extractUserIdFromRequest } from "../../../utils/user.ts";
 import { parseOPML } from "../../../backend/parseOPML.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import type { FeedRecord } from "../../../backend/types/feed.types.ts";

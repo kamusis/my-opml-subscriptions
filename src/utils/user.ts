@@ -31,3 +31,11 @@ export function extractUserIdFromRequest(req: Request): [string | null, Response
   }
   return [userId, null];
 }
+
+/**
+ * Returns true if the userId is a valid UUID (adjust regex as needed)
+ */
+export function isValidUserId(userId: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return typeof userId === "string" && uuidRegex.test(userId);
+}

@@ -1,6 +1,6 @@
 import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
-import { extractUserIdFromRequest } from "../../utils/user.ts";
+import { extractUserIdFromRequest } from "../../../utils/user.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import { ValidationServiceImpl } from "../../../backend/services/validation/index.ts";
 import { getMockWebSocketService } from "../../../backend/services/websocket/mock-websocket.service.ts";
@@ -122,16 +122,8 @@ export const handler: Handlers = {
       }
 
       // Multi-user support: extract userId from headers
-      const userId = req.headers.get("x-user-id");
-      if (!userId) {
-        return new Response(JSON.stringify({
-          error: "Missing userId",
-          message: "A userId must be provided in the 'x-user-id' header."
-        }), {
-          status: 400,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
+      const [userId, errorResponse] = extractUserIdFromRequest(req);
+      if (errorResponse) return errorResponse;
       // Get service instances
       const storage = await getStorageService();
       const mockWebSocketService = getMockWebSocketService();

@@ -1,7 +1,7 @@
 // src/frontend/routes/api/feeds.ts
 import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
-import { extractUserIdFromRequest } from "../../utils/user.ts";
+import { extractUserIdFromRequest } from "../../../utils/user.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import type { ListFeedsOptions, ListFeedsResult } from "../../../backend/types/storage.types.ts";
 import type { FeedStatus } from "../../../backend/types/feed.types.ts";

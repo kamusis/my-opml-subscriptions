@@ -1,6 +1,6 @@
 import { Handlers } from "$fresh/server.ts";
 import { createLogger } from "../../../utils/logger.ts";
-import { extractUserIdFromRequest } from "../../utils/user.ts";
+import { extractUserIdFromRequest } from "../../../utils/user.ts";
 import { KVStorageService } from "../../../backend/services/storage/index.ts";
 import { ValidationServiceImpl } from "../../../backend/services/validation/index.ts";
 import { WebSocketServiceImpl } from "../../../backend/services/websocket/index.ts";

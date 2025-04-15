@@ -80,7 +80,6 @@ export interface IKVStorageService {
 
     // Lifecycle
     close(): void;
-    clearAllData(): Promise<void>;
 
     // Feed data storage
     /**
