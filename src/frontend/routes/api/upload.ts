@@ -97,6 +97,7 @@ export const handler: Handlers = {
       const storage = await KVStorageService.initialize();
       
       // Process each category and its feeds
+      logger.info(`Processing ${Object.keys(opmlData.categories).length} categories, saving to database...`);
       for (const [category, feeds] of Object.entries(opmlData.categories)) {
         for (const feed of feeds) {
           const feedRecord: FeedRecord = {
@@ -113,6 +114,7 @@ export const handler: Handlers = {
           await storage.saveFeedData(userId!, feedRecord);
         }
       }
+      logger.info(`Processed ${Object.keys(opmlData.categories).length} categories, saved to database successfully`);
 
       // Return success response
       return new Response(JSON.stringify({
