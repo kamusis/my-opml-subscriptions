@@ -42,7 +42,7 @@ export const handler: Handlers = {
       
       const opmlContent = generateOPMLForExport(feedCollection, { 
         title: "Exported Feeds",
-        includeAllStatuses: true 
+        includeAllStatuses: true  // Previously, export could filter by status, but since frontend filtering is now available, we always export all statuses by default.
       });
       
       // Create download response with simplified filename format
