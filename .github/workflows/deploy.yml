@@ -3,7 +3,8 @@ on:
   push:
     branches: main
     paths-ignore:
-      - '**/README.md'
+      - 'README.md'
+      - '**/*.md'
 
 jobs:
   deploy:
