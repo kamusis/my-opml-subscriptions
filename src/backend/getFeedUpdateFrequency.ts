@@ -36,9 +36,9 @@ function makeXmlCompatible(value: string): string {
 
 function makeFeedEntry(partial: Partial<FeedEntry>): FeedEntry {
   return {
-    url: partial.url ? makeXmlCompatible(partial.url) : '',
-    text: partial.text ? makeXmlCompatible(partial.text) : (partial.url ? makeXmlCompatible(partial.url) : ''),
-    title: partial.title ? makeXmlCompatible(partial.title) : (partial.text ? makeXmlCompatible(partial.text) : (partial.url ? makeXmlCompatible(partial.url) : '')),
+    url: makeXmlCompatible(partial.url ?? ''),
+    text: makeXmlCompatible(partial.text ?? partial.url ?? ''),
+    title: makeXmlCompatible(partial.title ?? partial.text ?? partial.url ?? ''),
     type: partial.type || 'rss',
     htmlUrl: partial.htmlUrl || '',
     description: partial.description ? makeXmlCompatible(partial.description) : '',

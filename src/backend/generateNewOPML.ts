@@ -49,7 +49,7 @@ function generateOPMLContent(opmlData: FeedCollection, status: FeedStatus, title
         // For incompatible feeds, include the reason in a comment attribute
         // Fallback logic for each field
         const text = feed.text || feed.title || feed.url;
-        const title = feed.title || text;
+        const title = text;
         const type = feed.type || 'rss';
         const htmlUrl = feed.htmlUrl || '';
         const description = feed.description || '';
