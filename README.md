@@ -2,6 +2,20 @@
 
 A Deno-based tool for validating and analyzing OPML feed subscriptions. This tool helps you clean up your RSS feed subscriptions by identifying dead feeds, inactive feeds, incompatible feeds, and sorting active feeds based on their update frequency.
 
+## Frontend Usage
+
+- Visit [https://kamusis-my-opml-sub.deno.dev/](https://kamusis-my-opml-sub.deno.dev/)
+- Upload -> Validate -> Export
+![58560](https://s2.loli.net/2025/04/18/dBHu38on64Xlc1F.png)
+
+## Frontend Features
+
+- No sign-up or login required
+- Each user is automatically assigned a unique ID (UUID), which is stored in your browser's local storage
+- If you use a new browser or clear your browser data, you will need to re-upload your OPML file
+- Your feeds are securely and persistently stored in a Deno KV database
+- Your feeds are private—other users cannot view them
+
 ## Backend Features
 
 - **Feed Validation**: Checks each feed's accessibility, compatibility, and update status
