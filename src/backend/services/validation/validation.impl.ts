@@ -156,11 +156,17 @@ export class ValidationServiceImpl {
                 
                 if (existingFeed?.value) {
                   const feed = existingFeed.value;
+                  logger.debug(`Updating feed data for ${url}:`, JSON.stringify(result));
                   await this.storage.updateFeedData(userId, url, {
                     status: result.status,
                     lastUpdate: result.lastUpdate || feed.lastUpdate,
                     updatesInLast3Months: result.updatesInLast3Months || feed.updatesInLast3Months,
                     incompatibleReason: result.error || feed.incompatibleReason,
+                    text: result.text || feed.text,
+                    title: result.title || feed.title,
+                    type: result.type || feed.type,
+                    htmlUrl: result.htmlUrl || feed.htmlUrl,
+                    description: result.description || feed.description,
                     lastValidated: now,
                     validationHistory: [
                       ...(feed.validationHistory || []).slice(0, 9),
@@ -239,12 +245,10 @@ export class ValidationServiceImpl {
     // Check update frequency for compatible feeds
     const updateCheck = await getFeedUpdateFrequency(url);
     return {
-      url,
-      status: updateCheck.status,
-      error: updateCheck.incompatibleReason,
-      lastUpdate: updateCheck.lastUpdate || undefined, // Convert null to undefined to match expected type
-      updatesInLast3Months: updateCheck.updatesInLast3Months
+      ...updateCheck,
+      error: updateCheck.incompatibleReason // For compatibility with existing code
     };
+
   }
 
   private async updateProgress(userId: string, validationId: string, progress: ValidationProgress): Promise<void> {

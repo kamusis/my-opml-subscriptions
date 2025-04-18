@@ -44,8 +44,13 @@ export interface FeedValidationResult {
   url: string;
   status: FeedStatus;
   error?: string;
-  lastUpdate?: string;
+  lastUpdate?: string | undefined;
   updatesInLast3Months?: number;
+  text?: string;
+  title?: string;
+  type?: string;
+  htmlUrl?: string;
+  description?: string;
 }
 
 /**

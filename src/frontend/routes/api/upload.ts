@@ -103,8 +103,13 @@ export const handler: Handlers = {
           const feedRecord: FeedRecord = {
             userId: userId!, // Multi-user: associate feed with user
             url: feed.url,
+            text: feed.text,
+            title: feed.title,
+            type: feed.type,
+            htmlUrl: feed.htmlUrl,
+            description: feed.description,
             status: feed.status,
-            lastUpdate: feed.lastUpdate ?? null,
+            lastUpdate: feed.lastUpdate ?? undefined,
             updatesInLast3Months: feed.updatesInLast3Months,
             incompatibleReason: feed.incompatibleReason,
             category,

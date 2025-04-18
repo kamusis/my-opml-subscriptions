@@ -47,8 +47,19 @@ function generateOPMLContent(opmlData: FeedCollection, status: FeedStatus, title
       // Generate outline elements for each feed in the category
       filteredFeeds.forEach((feed: FeedEntry) => {
         // For incompatible feeds, include the reason in a comment attribute
+        // Fallback logic for each field
+        const text = feed.text || feed.title || feed.url;
+        const title = feed.title || text;
+        const type = feed.type || 'rss';
+        const htmlUrl = feed.htmlUrl || '';
+        const description = feed.description || '';
         const commentAttr = feed.incompatibleReason ? ` comment="${feed.incompatibleReason}"` : '';
-        opmlContent += `      <outline text="${feed.url}" xmlUrl="${feed.url}"${commentAttr} />
+        opmlContent += `      <outline text="${text}"
+        title="${title}"
+        type="${type}"
+        htmlUrl="${htmlUrl}"
+        description="${description}"
+        xmlUrl="${feed.url}"${commentAttr} />
 `;
       });
 
@@ -119,9 +130,8 @@ export function generateOPMLForExport(
 ): string {
   const title = options?.title || "Exported Feeds";
   
-  if (options?.includeAllStatuses) {
-    // Combine all statuses into a single OPML file
-    let combinedContent = `<?xml version="1.0" encoding="UTF-8"?>
+  // Always output a single OPML file with all feeds, including all fields
+  let combinedContent = `<?xml version="1.0" encoding="UTF-8"?>
 <opml version="2.0">
   <head>
     <title>${title}</title>
@@ -129,30 +139,31 @@ export function generateOPMLForExport(
   <body>
 `;
 
-    // Process each category
-    for (const [category, feeds] of Object.entries(opmlData.categories)) {
-      if (feeds.length > 0) {
-        combinedContent += `    <outline text="${category}">
+  // Process each category
+  for (const [category, feeds] of Object.entries(opmlData.categories)) {
+    if (feeds.length > 0) {
+      combinedContent += `    <outline text="${category}">
 `;
-        
-        // Add all feeds in this category
-        feeds.forEach((feed) => {
-          const commentAttr = feed.incompatibleReason ? ` comment="${feed.incompatibleReason}"` : '';
-          combinedContent += `      <outline text="${feed.url}" xmlUrl="${feed.url}"${commentAttr} />
+      
+      // Add all feeds in this category
+      feeds.forEach((feed) => {
+        const text = feed.text || feed.title || feed.url;
+        const titleAttr = feed.title ? ` title="${feed.title}"` : '';
+        const typeAttr = feed.type ? ` type="${feed.type}"` : '';
+        const htmlUrlAttr = feed.htmlUrl ? ` htmlUrl="${feed.htmlUrl}"` : '';
+        const descriptionAttr = feed.description ? ` description="${feed.description}"` : '';
+        const commentAttr = feed.incompatibleReason ? ` comment="${feed.incompatibleReason}"` : '';
+        combinedContent += `      <outline text="${text}" xmlUrl="${feed.url}"${titleAttr}${typeAttr}${htmlUrlAttr}${descriptionAttr}${commentAttr} />
 `;
-        });
-        
-        combinedContent += `    </outline>
+      });
+      
+      combinedContent += `    </outline>
 `;
-      }
     }
-    
-    combinedContent += `  </body>
-</opml>`;
-    
-    return combinedContent;
-  } else {
-    // Use the existing function to generate content for active feeds only
-    return generateOPMLContent(opmlData, 'active', title);
   }
+  
+  combinedContent += `  </body>
+</opml>`;
+  
+  return combinedContent;
 }

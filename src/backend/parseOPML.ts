@@ -63,11 +63,21 @@ function parseOpmlXml(xml: string): FeedCollection {
       if (!categories[category]) {
         categories[category] = [];
       }
-      // Add feed to its category with initial dead status
+      // Extract OPML feed metadata fields with fallbacks
+      const text = outline["@text"] || outline["@title"] || outline["@xmlUrl"];
+      const title = outline["@title"] || text;
+      const type = outline["@type"] || 'rss';
+      const htmlUrl = outline["@htmlUrl"] || '';
+      const description = outline["@description"] || '';
       categories[category].push({
         url: outline["@xmlUrl"],
+        text,
+        title,
+        type,
+        htmlUrl,
+        description,
         status: "dead",
-        lastUpdate: null,
+        lastUpdate: undefined,
         updatesInLast3Months: 0,
       } as FeedEntry);
       logger.debug(`Added feed ${outline["@xmlUrl"]} to category ${category}`);

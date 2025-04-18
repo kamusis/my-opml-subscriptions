@@ -12,6 +12,43 @@ const logger = createLogger("feedUpdateFrequency");
  * @param feedUrl The URL of the feed to analyze
  * @returns Promise<FeedStatus> Status information about the feed
  */
+// Helper to make string XML-compatible: remove HTML tags, non-ASCII, collapse whitespace
+function makeXmlCompatible(value: string): string {
+  // Remove HTML tags
+  let result = value.replace(/<[^>]*>/g, ' ');
+  // Remove only characters not allowed in XML 1.0
+  result = result.replace(
+    // deno-lint-ignore no-control-regex
+    /[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD]/g,
+    ' '
+  );
+  // Collapse multiple spaces
+  result = result.replace(/\s+/g, ' ').trim();
+  // Escape XML attribute special characters
+  result = result
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+  return result;
+}
+
+function makeFeedEntry(partial: Partial<FeedEntry>): FeedEntry {
+  return {
+    url: partial.url ? makeXmlCompatible(partial.url) : '',
+    text: partial.text ? makeXmlCompatible(partial.text) : (partial.url ? makeXmlCompatible(partial.url) : ''),
+    title: partial.title ? makeXmlCompatible(partial.title) : (partial.text ? makeXmlCompatible(partial.text) : (partial.url ? makeXmlCompatible(partial.url) : '')),
+    type: partial.type || 'rss',
+    htmlUrl: partial.htmlUrl || '',
+    description: partial.description ? makeXmlCompatible(partial.description) : '',
+    status: partial.status || 'incompatible',
+    lastUpdate: partial.lastUpdate ?? undefined,
+    updatesInLast3Months: partial.updatesInLast3Months ?? 0,
+    incompatibleReason: partial.incompatibleReason
+  };
+}
+
 export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry> {
   try {
     // Check if feed URL is accessible
@@ -19,13 +56,11 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
     if (!response.ok) {
       const error = `HTTP ${response.status} ${response.statusText}`;
       logger.error(`Feed was marked as compatible but HTTP request failed for ${feedUrl}: ${error}`);
-      return {
+      return makeFeedEntry({
         url: feedUrl,
         status: "incompatible",
-        lastUpdate: null,
-        updatesInLast3Months: 0,
         incompatibleReason: `Feed previously accessible but now returns ${error}`
-      };
+      });
     }
 
     // Verify content type is RSS, Atom, or general XML
@@ -40,30 +75,29 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
          baseContentType !== "application/xml")) {
       const error = `Unexpected content type: ${contentType}`;
       logger.error(`Feed was marked as compatible but returned invalid content type for ${feedUrl}: ${error}`);
-      return {
+      return makeFeedEntry({
         url: feedUrl,
         status: "incompatible",
-        lastUpdate: null,
-        updatesInLast3Months: 0,
         incompatibleReason: error
-      };
+      });
+
     }
 
     // Parse feed content
     const feedText = await response.text();
     const feed = await parseFeed(feedText);
+    logger.debug(`Parsed feed fields for ${feedUrl}: url=${feedUrl}, title=${feed.title.value}, description=${feed.description}`);
 
     // If feed has no entries, mark as incompatible
     if (!feed.entries || feed.entries.length === 0) {
       const error = "Feed contains no entries";
       logger.error(`Feed was marked as compatible but ${error} for ${feedUrl}`);
-      return {
+      return makeFeedEntry({
         url: feedUrl,
         status: "incompatible",
-        lastUpdate: null,
-        updatesInLast3Months: 0,
         incompatibleReason: error
-      };
+      });
+
     }
 
     // Set up time windows for analysis
@@ -99,13 +133,12 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
     if (!validDatesFound) {
       const error = "No valid dates found in feed entries";
       logger.error(`Feed was marked as compatible but ${error} for ${feedUrl}`);
-      return {
+      return makeFeedEntry({
         url: feedUrl,
         status: "incompatible",
-        lastUpdate: null,
-        updatesInLast3Months: 0,
         incompatibleReason: error
-      };
+      });
+
     }
 
     // Determine feed status based on last update
@@ -117,12 +150,37 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
     }
     logger.debug(`Feed ${feedUrl} status: ${status}, last update: ${lastUpdate}, updates in last 3 months: ${updatesInLast3Months}`);
 
-    return {
+    // Log htmlUrl for tusacentral feeds (after htmlUrl is determined, see below)
+
+    // Extract additional metadata fields from the parsed feed
+    // Ensure text and title are always strings (avoid TextField type errors)
+    const text = typeof feed.title === 'string' ? feed.title : (feed.title && typeof feed.title.value === 'string' ? feed.title.value : feedUrl);
+    const title = typeof feed.title === 'string' ? feed.title : (feed.title && typeof feed.title.value === 'string' ? feed.title.value : feedUrl);
+    const type = 'rss'; // Default to 'rss', could be enhanced
+    // Try to extract htmlUrl from feed.link or feed.links[0]?.href
+    let htmlUrl = '';
+    if (Array.isArray(feed.links) && feed.links.length > 0) {
+      const link0 = feed.links[0] as { href?: string };
+      if (link0 && typeof link0.href === 'string') {
+        htmlUrl = link0.href;
+      }
+    }
+    // For some feeds in special format, can generate log here to debug
+    // logger.debug('TUSACENTRAL htmlUrl:', htmlUrl);
+    const description = feed.description ? makeXmlCompatible(feed.description) : '';
+
+    return makeFeedEntry({
       url: feedUrl,
+      text,
+      title,
+      type,
+      htmlUrl,
+      description,
       status,
-      lastUpdate: lastUpdate !== null ? (lastUpdate as Date).toISOString() : null,
+      lastUpdate: lastUpdate !== null ? (lastUpdate as Date).toISOString() : undefined,
       updatesInLast3Months
-    };
+    });
+
   } catch (error) {
     // Handle any errors during feed processing with detailed logging
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -133,12 +191,11 @@ export async function getFeedUpdateFrequency(feedUrl: string): Promise<FeedEntry
       logger.error(`Stack trace: ${error.stack}`);
     }
 
-    return {
+    return makeFeedEntry({
       url: feedUrl,
       status: "incompatible",
-      lastUpdate: null,
-      updatesInLast3Months: 0,
       incompatibleReason: `Error checking update frequency: ${errorMessage}`
-    };
+    });
+
   }
 }

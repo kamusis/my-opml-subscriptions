@@ -62,10 +62,12 @@ async function main() {
         feed.status = feedStatus.status;
         feed.lastUpdate = feedStatus.lastUpdate;
         feed.updatesInLast3Months = feedStatus.updatesInLast3Months;
-        // Add incompatible reason if feed became incompatible
-        if (feedStatus.status === 'incompatible') {
-          feed.incompatibleReason = feedStatus.incompatibleReason;
-        }
+        feed.text = feedStatus.text;
+        feed.title = feedStatus.title;
+        feed.type = feedStatus.type;
+        feed.htmlUrl = feedStatus.htmlUrl;
+        feed.description = feedStatus.description;
+        feed.incompatibleReason = feedStatus.incompatibleReason;
         logger.info(`Feed status: ${feed.status}${feedStatus.incompatibleReason ? ': ' + feedStatus.incompatibleReason : ''}`);
       } else {
         logger.info(`Feed marked as ${feed.status}${feed.incompatibleReason ? ': ' + feed.incompatibleReason : ''}`);
