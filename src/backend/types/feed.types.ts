@@ -11,16 +11,18 @@ export type FeedStatus = 'active' | 'inactive' | 'dead' | 'incompatible';
  * Base feed interface with common properties shared across the application
  */
 export interface FeedBase {
-    /** The URL of the feed */
+    /** The URL of the feed (corresponds to xmlUrl in OPML) */
     url: string;
-    /** Current status of the feed (active/inactive/dead/incompatible) */
-    status: FeedStatus;
-    /** Most recent update time of the feed, null if never updated or inaccessible */
-    lastUpdate: string | null;
-    /** Number of updates in the last 3 months */
-    updatesInLast3Months: number;
-    /** Reason for incompatibility if status is 'incompatible' */
-    incompatibleReason?: string;
+    /** Display name from OPML (the 'text' attribute, mandatory in OPML) */
+    text: string;
+    /** Feed's human-readable title (from RSS or OPML, optional but often simply duplicate the value of 'text') */
+    title?: string;
+    /** Feed type, usually 'rss' (optional, from OPML) */
+    type?: string;
+    /** Website URL for the feed (optional, from OPML) */
+    htmlUrl?: string;
+    /** Description from RSS/OPML (optional) */
+    description?: string;
 }
 
 /**
@@ -28,14 +30,21 @@ export interface FeedBase {
  * This is equivalent to the previous FeedStatus interface in parseOPML.ts
  */
 export interface FeedEntry extends FeedBase {
-    // Currently identical to FeedBase, but can be extended with specific properties
+    /** Current status of the feed (active/inactive/dead/incompatible) */
+    status: FeedStatus;
+    /** Most recent update time of the feed, null if never updated or inaccessible */
+    lastUpdate: string | undefined;
+    /** Number of updates in the last 3 months */
+    updatesInLast3Months: number;
+    /** Reason for incompatibility if status is 'incompatible' */
+    incompatibleReason?: string;
 }
 
 /**
  * Represents a feed record with all its metadata and validation history
  * Used primarily by the storage service
  */
-export interface FeedRecord extends FeedBase {
+export interface FeedRecord extends FeedEntry {
     /** User this feed belongs to */
     userId: string;
     /** Category the feed belongs to */

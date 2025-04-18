@@ -169,6 +169,8 @@ export class KVStorageService implements IKVStorageService {
       // Skip entries before cursor position
       if (options.cursor && count <= parseInt(options.cursor)) continue;
       
+      // DEBUG: Log each FeedRecord being returned
+      //logger.debug("Returning FeedRecord:", JSON.stringify(entry.value));
       feeds.push(entry.value);
       // Check if we've reached the requested limit
       if (feeds.length === (options.limit || 20)) {

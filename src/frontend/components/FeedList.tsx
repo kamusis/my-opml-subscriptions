@@ -130,7 +130,7 @@ export default function FeedList({
                         />
                       </div>
                     </th>
-                    <SortableHeader field="url" label="URL" />
+                    <SortableHeader field="url" label="Name" />
                     <SortableHeader field="category" label="Category" />
                     <SortableHeader field="status" label="Status" />
                     <SortableHeader field="lastUpdate" label="Last Update" />
@@ -168,8 +168,8 @@ export default function FeedList({
                             }}
                             style={{ maxWidth: 'calc(100% - 1.5rem)' }}
                           >
-                            {/* Display URL with visual indication of truncation */}
-                            <span class="truncate">{feed.url}</span>
+                            {/* Display feed.text, fallback to feed.url if missing */}
+                            <span class="truncate">{feed.text || feed.url}</span>
                           </a>
                         </div>
                       </td>
